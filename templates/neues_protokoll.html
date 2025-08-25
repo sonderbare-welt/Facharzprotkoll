@@ -1,0 +1,169 @@
+<!-- templates/neues_protokoll.html -->
+{% extends "base.html" %}
+
+{% block title %}Neues Protokoll - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h3>💡 Tipps für ein gutes Protokoll</h3>
+    <ul style="margin-top: 1rem;">
+        <li>Beschreiben Sie konkrete Fragen und Fälle</li>
+        <li>Notieren Sie die Prüfungsatmosphäre und das Verhalten der Prüfer</li>
+        <li>Verwenden Sie passende Hashtags für bessere Auffindbarkeit</li>
+        <li>Seien Sie ehrlich und konstruktiv in Ihren Kommentaren</li>
+        <li>Denken Sie daran: Ihre Erfahrung hilft anderen bei der Vorbereitung!</li>
+    </ul>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Prüfungsinhalt</h1>
+        <p class="card-subtitle">Teilen Sie Ihre Prüfungserfahrung mit anderen</p>
+    </div>
+
+    <form method="POST">
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="datum" class="form-label">Prüfungsdatum *</label>
+                    <input type="date" id="datum" name="datum" class="form-control" required>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="bundesland" class="form-label">Bundesland *</label>
+                    <select id="bundesland" name="bundesland" class="form-control" required onchange="loadPruefer()">
+                        <option value="">Bitte wählen...</option>
+                        {% for bl in bundeslaender %}
+                            <option value="{{ bl }}">{{ bl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4">
+                <div class="form-group">
+                    <label for="pruefer1" class="form-label">Prüfer 1 (Hauptprüfer) *</label>
+                    <select id="pruefer1" name="pruefer1" class="form-control" required>
+                        <option value="">Erst Bundesland wählen</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label for="pruefer2" class="form-label">Prüfer 2 *</label>
+                    <select id="pruefer2" name="pruefer2" class="form-control" required>
+                        <option value="">Erst Bundesland wählen</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label for="pruefer3" class="form-label">Prüfer 3 *</label>
+                    <select id="pruefer3" name="pruefer3" class="form-control" required>
+                        <option value="">Erst Bundesland wählen</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="hashtags" class="form-label">Hashtags (Themenbereiche)</label>
+            <input type="text" id="hashtags" name="hashtags" class="form-control"
+                   placeholder="z.B. #Onkologie #Prostata #Bildgebung"
+                   list="hashtag-suggestions">
+            <datalist id="hashtag-suggestions">
+                {% for hashtag in predefined_hashtags %}
+                    <option value="{{ hashtag }}">
+                {% endfor %}
+            </datalist>
+            <small style="color: #86868b;">Trennen Sie mehrere Hashtags mit Leerzeichen. Vorschläge erscheinen beim Tippen.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="inhalt" class="form-label">Prüfungsinhalt *</label>
+            <textarea id="inhalt" name="inhalt" class="form-control" rows="8" required
+                      placeholder="Beschreiben Sie detailliert den Ablauf der Prüfung, gestellte Fragen, Fälle, etc."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="kommentar" class="form-label">Persönlicher Kommentar</label>
+            <textarea id="kommentar" name="kommentar" class="form-control" rows="4"
+                      placeholder="Optionale Anmerkungen, Tipps oder persönliche Einschätzungen..."></textarea>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary" style="margin-right: 1rem;">
+                📝 Protokoll speichern
+            </button>
+            <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">Abbrechen</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Prüfer nach Bundesland laden
+function loadPruefer() {
+    const bundesland = document.getElementById('bundesland').value;
+    const pruefer1 = document.getElementById('pruefer1');
+    const pruefer2 = document.getElementById('pruefer2');
+    const pruefer3 = document.getElementById('pruefer3');
+
+    // Reset Prüfer-Selects
+    [pruefer1, pruefer2, pruefer3].forEach(select => {
+        select.innerHTML = '<option value="">Lädt...</option>';
+    });
+
+    if (bundesland) {
+        fetch(`/api/pruefer/${bundesland}`)
+            .then(response => response.json())
+            .then(data => {
+                const options = '<option value="">Bitte wählen...</option>' +
+                    data.map(pruefer => `<option value="${pruefer.id}">${pruefer.name}</option>`).join('');
+
+                [pruefer1, pruefer2, pruefer3].forEach(select => {
+                    select.innerHTML = options;
+                });
+            })
+            .catch(error => {
+                console.error('Fehler beim Laden der Prüfer:', error);
+                [pruefer1, pruefer2, pruefer3].forEach(select => {
+                    select.innerHTML = '<option value="">Fehler beim Laden</option>';
+                });
+            });
+    } else {
+        [pruefer1, pruefer2, pruefer3].forEach(select => {
+            select.innerHTML = '<option value="">Erst Bundesland wählen</option>';
+        });
+    }
+}
+
+// Hashtag Auto-Complete
+document.getElementById('hashtags').addEventListener('input', function(e) {
+    const value = e.target.value;
+    const words = value.split(' ');
+    const currentWord = words[words.length - 1];
+
+    if (currentWord.startsWith('#') && currentWord.length > 1) {
+        // Hier könnte eine erweiterte Auto-Complete-Logik implementiert werden
+    }
+});
+
+// Form-Validierung
+document.querySelector('form').addEventListener('submit', function(e) {
+    const pruefer1 = document.getElementById('pruefer1').value;
+    const pruefer2 = document.getElementById('pruefer2').value;
+    const pruefer3 = document.getElementById('pruefer3').value;
+
+    if (pruefer1 === pruefer2 || pruefer1 === pruefer3 || pruefer2 === pruefer3) {
+        e.preventDefault();
+        alert('Bitte wählen Sie drei verschiedene Prüfer aus.');
+        return false;
+    }
+});
+</script>
+{% endblock %}

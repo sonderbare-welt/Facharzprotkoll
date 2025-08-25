@@ -1,0 +1,142 @@
+<!-- templates/protokolle.html -->
+{% extends "base.html" %}
+
+{% block title %}Protokolle - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Prüfungsprotokolle</h1>
+        <p class="card-subtitle">{{ protokolle|length }} Protokolle gefunden</p>
+    </div>
+</div>
+
+<div class="filter-section">
+    <form method="GET">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="bundesland" class="form-label">Bundesland</label>
+                <select id="bundesland" name="bundesland" class="form-control">
+                    <option value="">Alle Bundesländer</option>
+                    {% for bl in bundeslaender %}
+                        <option value="{{ bl }}" {% if bl == bundesland_filter %}selected{% endif %}>{{ bl }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="pruefer" class="form-label">Prüfer</label>
+                <input type="text" id="pruefer" name="pruefer" class="form-control"
+                       placeholder="Prüfername eingeben..." value="{{ pruefer_filter }}">
+            </div>
+
+            <div class="filter-group">
+                <label for="hashtag" class="form-label">Hashtag</label>
+                <input type="text" id="hashtag" name="hashtag" class="form-control"
+                       placeholder="z.B. #Onkologie" value="{{ hashtag_filter }}"
+                       list="hashtag-suggestions">
+                <datalist id="hashtag-suggestions">
+                    {% for hashtag in predefined_hashtags %}
+                        <option value="{{ hashtag }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+
+            <div class="filter-group">
+                <button type="submit" class="btn btn-primary">🔍 Filtern</button>
+                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">Zurücksetzen</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if protokolle %}
+    <div class="row">
+        {% for protokoll in protokolle %}
+        <div class="col-12">
+            <div class="card">
+                <div class="row">
+                    <div class="col-3">
+                        <strong>📅 {{ protokoll[1] }}</strong><br>
+                        <small style="color: #86868b;">{{ protokoll[2] }}</small>
+                    </div>
+                    <div class="col-6">
+                        <strong>Prüfer:</strong><br>
+                        <small>{{ protokoll[3] }}, {{ protokoll[4] }}, {{ protokoll[5] }}</small>
+                    </div>
+                    <div class="col-3">
+                        <small style="color: #86868b;">von {{ protokoll[9] }}</small>
+                    </div>
+                </div>
+
+                {% if protokoll[6] %}
+                <div style="margin: 1rem 0;">
+                    {% for hashtag in protokoll[6].split() %}
+                        <a href="{{ url_for('protokolle', hashtag=hashtag) }}" class="hashtag">{{ hashtag }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5ea;">
+                    <strong>Prüfungsinhalt:</strong>
+                    <p style="margin-top: 0.5rem; white-space: pre-wrap;">{{ protokoll[7][:200] }}{% if protokoll[7]|length > 200 %}...{% endif %}</p>
+
+                    {% if protokoll[8] %}
+                    <strong>Kommentar:</strong>
+                    <p style="margin-top: 0.5rem; white-space: pre-wrap; font-style: italic;">{{ protokoll[8][:100] }}{% if protokoll[8]|length > 100 %}...{% endif %}</p>
+                    {% endif %}
+                </div>
+
+                <div style="text-align: right; margin-top: 1rem;">
+                    <button onclick="toggleFullContent({{ protokoll[0] }})" class="btn btn-secondary btn-sm">
+                        Vollständig anzeigen
+                    </button>
+                </div>
+
+                <div id="full-content-{{ protokoll[0] }}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5ea;">
+                    <strong>Vollständiger Inhalt:</strong>
+                    <p style="margin-top: 0.5rem; white-space: pre-wrap;">{{ protokoll[7] }}</p>
+
+                    {% if protokoll[8] %}
+                    <strong>Vollständiger Kommentar:</strong>
+                    <p style="margin-top: 0.5rem; white-space: pre-wrap; font-style: italic;">{{ protokoll[8] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 4rem;">
+        <h3>🔍 Keine Protokolle gefunden</h3>
+        <p style="color: #86868b; margin: 1rem 0;">
+            {% if bundesland_filter or pruefer_filter or hashtag_filter %}
+                Versuchen Sie andere Filterkriterien oder
+                <a href="{{ url_for('protokolle') }}" style="color: #007AFF;">setzen Sie die Filter zurück</a>.
+            {% else %}
+                Noch keine Protokolle vorhanden. Seien Sie der Erste!
+            {% endif %}
+        </p>
+        <a href="{{ url_for('neues_protokoll') }}" class="btn btn-primary">Erstes Protokoll erstellen</a>
+    </div>
+{% endif %}
+
+<a href="{{ url_for('neues_protokoll') }}" class="fab">+</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleFullContent(id) {
+    const element = document.getElementById('full-content-' + id);
+    const button = event.target;
+
+    if (element.style.display === 'none') {
+        element.style.display = 'block';
+        button.textContent = 'Weniger anzeigen';
+    } else {
+        element.style.display = 'none';
+        button.textContent = 'Vollständig anzeigen';
+    }
+}
+</script>
+{% endblock %}

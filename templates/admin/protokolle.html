@@ -1,0 +1,750 @@
+<!-- templates/admin/protokolle.html -->
+{% extends "base.html" %}
+
+{% block title %}Protokoll-Verwaltung - Admin{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="card-title">📋 Protokoll-Verwaltung</h1>
+                <p class="card-subtitle">{{ gesamt_protokolle }} Protokolle von {{ aktive_autoren }} Autoren</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                    ← Admin Dashboard
+                </a>
+                <a href="{{ url_for('admin_logs') }}" class="btn btn-outline">
+                    📜 Admin-Logs
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiken -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-number">{{ gesamt_protokolle }}</span>
+        <div class="stat-label">Gesamt Protokolle</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ aktive_autoren }}</span>
+        <div class="stat-label">Aktive Autoren</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ bundeslaender_mit_protokollen }}</span>
+        <div class="stat-label">Bundesländer</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ (protokolle|length / gesamt_protokolle * 100)|round(1) if gesamt_protokolle > 0 else 0 }}%</span>
+        <div class="stat-label">Gefiltert</div>
+    </div>
+</div>
+
+<!-- Erweiterte Filter -->
+<div class="filter-section">
+    <form method="GET" id="filterForm">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="user" class="form-label">Autor</label>
+                <input type="text" id="user" name="user" class="form-control"
+                       placeholder="Autor suchen..." value="{{ user_filter }}"
+                       list="user-suggestions">
+                <datalist id="user-suggestions">
+                    {% for user in alle_benutzer_namen %}
+                        <option value="{{ user }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+
+            <div class="filter-group">
+                <label for="bundesland" class="form-label">Bundesland</label>
+                <select id="bundesland" name="bundesland" class="form-control" onchange="submitFilter()">
+                    <option value="">Alle Bundesländer</option>
+                    {% for bl in bundeslaender %}
+                        <option value="{{ bl }}" {% if bl == bundesland_filter %}selected{% endif %}>{{ bl }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="pruefer" class="form-label">Prüfer</label>
+                <input type="text" id="pruefer" name="pruefer" class="form-control"
+                       placeholder="Prüfername..." value="{{ pruefer_filter }}"
+                       list="pruefer-suggestions">
+                <datalist id="pruefer-suggestions">
+                    {% for pruefer in alle_pruefer_namen %}
+                        <option value="{{ pruefer }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+
+            <div class="filter-group">
+                <label for="hashtag" class="form-label">Hashtag</label>
+                <input type="text" id="hashtag" name="hashtag" class="form-control"
+                       placeholder="#Hashtag..." value="{{ hashtag_filter }}"
+                       list="hashtag-suggestions">
+                <datalist id="hashtag-suggestions">
+                    {% for hashtag in predefined_hashtags %}
+                        <option value="{{ hashtag }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="datum_von" class="form-label">Datum von</label>
+                <input type="date" id="datum_von" name="datum_von" class="form-control"
+                       value="{{ datum_von }}" onchange="submitFilter()">
+            </div>
+
+            <div class="filter-group">
+                <label for="datum_bis" class="form-label">Datum bis</label>
+                <input type="date" id="datum_bis" name="datum_bis" class="form-control"
+                       value="{{ datum_bis }}" onchange="submitFilter()">
+            </div>
+
+            <div class="filter-group">
+                <label for="sort" class="form-label">Sortierung</label>
+                <select id="sort" name="sort" class="form-control" onchange="submitFilter()">
+                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Erstellungsdatum</option>
+                    <option value="datum" {% if sort_by == 'datum' %}selected{% endif %}>Prüfungsdatum</option>
+                    <option value="bundesland" {% if sort_by == 'bundesland' %}selected{% endif %}>Bundesland</option>
+                    <option value="user_name" {% if sort_by == 'user_name' %}selected{% endif %}>Autor</option>
+                </select>
+                <input type="hidden" name="order" value="{{ sort_order }}">
+            </div>
+
+            <div class="filter-group">
+                <button type="button" onclick="toggleSortOrder()" class="btn btn-outline" title="Sortierreihenfolge umkehren">
+                    {% if sort_order == 'asc' %}⬆️{% else %}⬇️{% endif %}
+                </button>
+                <button type="button" onclick="resetFilters()" class="btn btn-secondary">Zurücksetzen</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Protokoll-Liste -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title">Protokoll-Liste</h3>
+            <div class="bulk-actions" style="display: none;">
+                <button onclick="showBulkActionModal()" class="btn btn-danger btn-sm">
+                    🗑️ Ausgewählte löschen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if protokolle %}
+        <div class="protocol-admin-list">
+            {% for protokoll in protokolle %}
+            <div class="protocol-admin-item">
+                <div class="protocol-header">
+                    <div class="protocol-meta">
+                        <input type="checkbox" class="protocol-checkbox" value="{{ protokoll[0] }}" onchange="updateBulkActions()">
+                        <div class="protocol-id">#{{ protokoll[0] }}</div>
+                        <div class="protocol-date">📅 {{ protokoll[1] }}</div>
+                        <div class="protocol-location">📍 {{ protokoll[2] }}</div>
+                        <div class="protocol-author">👤 {{ protokoll[9] }}</div>
+                    </div>
+
+                    <div class="protocol-actions">
+                        <a href="{{ url_for('admin_protokoll_details', protokoll_id=protokoll[0]) }}"
+                           class="btn btn-outline btn-sm" title="Details anzeigen">
+                            👁️
+                        </a>
+                        <a href="{{ url_for('admin_protokoll_bearbeiten', protokoll_id=protokoll[0]) }}"
+                           class="btn btn-secondary btn-sm" title="Bearbeiten">
+                            ✏️
+                        </a>
+                        <button onclick="showDeleteModal({{ protokoll[0] }}, '{{ protokoll[1] }}', '{{ protokoll[9] }}')"
+                                class="btn btn-danger btn-sm" title="Löschen">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="protocol-content">
+                    <div class="protocol-examiners">
+                        <strong>Prüfer:</strong> {{ protokoll[3] }}, {{ protokoll[4] }}, {{ protokoll[5] }}
+                    </div>
+
+                    {% if protokoll[6] %}
+                    <div class="protocol-hashtags">
+                        {% for hashtag in protokoll[6].split() %}
+                            <span class="hashtag">{{ hashtag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="protocol-excerpt">
+                        <strong>Inhalt:</strong>
+                        {{ protokoll[7][:200] }}{% if protokoll[7]|length > 200 %}...{% endif %}
+                    </div>
+
+                    {% if protokoll[8] %}
+                    <div class="protocol-comment">
+                        <strong>Kommentar:</strong>
+                        {{ protokoll[8][:100] }}{% if protokoll[8]|length > 100 %}...{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="protocol-footer">
+                    <div class="protocol-stats">
+                        <span class="stat-item">📝 {{ protokoll[7]|length }} Zeichen</span>
+                        <span class="stat-item">🕐 {{ protokoll[10][:16] if protokoll[10] else 'Unbekannt' }}</span>
+                        <span class="stat-item">👤 <a href="{{ url_for('benutzer_details', user_id=protokoll[11]) }}">{{ protokoll[9] }}</a></span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="list-controls">
+            <div class="selection-controls">
+                <button onclick="selectAll()" class="btn btn-outline btn-sm">Alle auswählen</button>
+                <button onclick="selectNone()" class="btn btn-outline btn-sm">Auswahl aufheben</button>
+                <span id="selectionCount" class="selection-count">0 ausgewählt</span>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <h3>Keine Protokolle gefunden</h3>
+            {% if user_filter or bundesland_filter or pruefer_filter or hashtag_filter or datum_von or datum_bis %}
+                <p>Versuchen Sie andere Filterkriterien oder
+                   <button onclick="resetFilters()" class="btn btn-outline">setzen Sie die Filter zurück</button>.
+                </p>
+            {% else %}
+                <p>Noch keine Protokolle in der Datenbank.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Bulk Delete Modal -->
+<div id="bulkDeleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🗑️ Protokolle löschen</h3>
+            <button onclick="hideBulkDeleteModal()" class="btn btn-sm">✕</button>
+        </div>
+
+        <form id="bulkDeleteForm">
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>⚠️ WARNUNG!</strong><br>
+                    Sie sind dabei, <span id="bulkDeleteCount">0</span> Protokoll(e) unwiderruflich zu löschen.
+                    <br><br>
+                    <strong>Die Autoren werden per E-Mail benachrichtigt.</strong>
+                </div>
+
+                <div class="form-group">
+                    <label for="bulk_grund" class="form-label">Grund für die Löschung *</label>
+                    <textarea id="bulk_grund" name="grund" class="form-control" rows="4" required
+                              placeholder="Grund für die Löschung, der allen Autoren mitgeteilt wird..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="hideBulkDeleteModal()" class="btn btn-secondary">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    🗑️ Protokolle unwiderruflich löschen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Single Delete Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🗑️ Protokoll löschen</h3>
+            <button onclick="hideDeleteModal()" class="btn btn-sm">✕</button>
+        </div>
+
+        <form method="POST" id="deleteForm">
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>⚠️ WARNUNG!</strong><br>
+                    Sie sind dabei, das Protokoll <strong id="deleteProtocolInfo"></strong> unwiderruflich zu löschen.
+                    <br><br>
+                    <strong>Der Autor (<span id="deleteAuthor"></span>) wird per E-Mail benachrichtigt.</strong>
+                </div>
+
+                <div class="form-group">
+                    <label for="delete_grund" class="form-label">Grund für die Löschung *</label>
+                    <textarea id="delete_grund" name="grund" class="form-control" rows="4" required
+                              placeholder="Grund für die Löschung, der dem Autor mitgeteilt wird..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="hideDeleteModal()" class="btn btn-secondary">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    🗑️ Protokoll unwiderruflich löschen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Admin Protokoll Liste Styles */
+.protocol-admin-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.protocol-admin-item {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    border: 1px solid rgba(196, 207, 219, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.protocol-admin-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.protocol-admin-item.selected {
+    border-color: var(--primary-green);
+    box-shadow: 0 0 0 2px rgba(63, 163, 87, 0.2);
+}
+
+.protocol-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(196, 207, 219, 0.05);
+    border-bottom: 1px solid rgba(196, 207, 219, 0.1);
+}
+
+.protocol-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.protocol-id {
+    font-family: monospace;
+    background: rgba(96, 106, 172, 0.1);
+    color: var(--primary-purple);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.protocol-date,
+.protocol-location,
+.protocol-author {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+.protocol-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.protocol-actions .btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.protocol-content {
+    padding: 1rem;
+}
+
+.protocol-examiners {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-dark);
+}
+
+.protocol-hashtags {
+    margin: 0.75rem 0;
+}
+
+.protocol-excerpt {
+    background: rgba(63, 163, 87, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-green);
+    margin: 0.75rem 0;
+    line-height: 1.6;
+}
+
+.protocol-comment {
+    background: rgba(169, 201, 55, 0.05);
+    padding: 0.75rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--secondary-green);
+    font-style: italic;
+    margin: 0.75rem 0;
+}
+
+.protocol-footer {
+    padding: 0.75rem 1rem;
+    background: rgba(196, 207, 219, 0.03);
+    border-top: 1px solid rgba(196, 207, 219, 0.1);
+}
+
+.protocol-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stat-item a {
+    color: var(--primary-green);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.stat-item a:hover {
+    text-decoration: underline;
+}
+
+.list-controls {
+    padding: 1rem;
+    border-top: 1px solid rgba(196, 207, 219, 0.2);
+    background: rgba(196, 207, 219, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selection-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.selection-count {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Filter Enhancements */
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: end;
+    margin-bottom: 1rem;
+}
+
+.filter-row:last-child {
+    margin-bottom: 0;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--light-gray);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .protocol-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .protocol-meta {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .protocol-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .filter-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .filter-group {
+        min-width: auto;
+    }
+
+    .list-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .selection-controls {
+        justify-content: center;
+    }
+}
+</style>
+
+<script>
+// Admin Protokoll Liste JavaScript
+let searchTimeout;
+
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        document.getElementById('filterForm').submit();
+    }, 500);
+}
+
+function submitFilter() {
+    document.getElementById('filterForm').submit();
+}
+
+function toggleSortOrder() {
+    const orderField = document.querySelector('input[name="order"]');
+    orderField.value = orderField.value === 'asc' ? 'desc' : 'asc';
+    submitFilter();
+}
+
+function resetFilters() {
+    window.location.href = '{{ url_for("admin_protokolle") }}';
+}
+
+// Selection Management
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.protocol-checkbox:checked');
+    const bulkActions = document.querySelector('.bulk-actions');
+    const selectionCount = document.getElementById('selectionCount');
+
+    if (checkboxes.length > 0) {
+        bulkActions.style.display = 'flex';
+        selectionCount.textContent = `${checkboxes.length} ausgewählt`;
+
+        // Update selected visual state
+        document.querySelectorAll('.protocol-admin-item').forEach(item => {
+            const checkbox = item.querySelector('.protocol-checkbox');
+            if (checkbox.checked) {
+                item.classList.add('selected');
+            } else {
+                item.classList.remove('selected');
+            }
+        });
+    } else {
+        bulkActions.style.display = 'none';
+        selectionCount.textContent = '0 ausgewählt';
+
+        // Remove all selected states
+        document.querySelectorAll('.protocol-admin-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+    }
+}
+
+function selectAll() {
+    document.querySelectorAll('.protocol-checkbox').forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateBulkActions();
+}
+
+function selectNone() {
+    document.querySelectorAll('.protocol-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateBulkActions();
+}
+
+// Bulk Delete Modal
+function showBulkActionModal() {
+    const selectedCheckboxes = document.querySelectorAll('.protocol-checkbox:checked');
+    document.getElementById('bulkDeleteCount').textContent = selectedCheckboxes.length;
+    document.getElementById('bulkDeleteModal').style.display = 'flex';
+}
+
+function hideBulkDeleteModal() {
+    document.getElementById('bulkDeleteModal').style.display = 'none';
+    document.getElementById('bulk_grund').value = '';
+}
+
+// Single Delete Modal
+function showDeleteModal(protocolId, datum, author) {
+    document.getElementById('deleteProtocolInfo').textContent = `#${protocolId} vom ${datum}`;
+    document.getElementById('deleteAuthor').textContent = author;
+    document.getElementById('deleteForm').action = `/admin/protokoll/${protocolId}/loeschen`;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    document.getElementById('delete_grund').value = '';
+}
+
+// Form Handlers
+document.getElementById('bulkDeleteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const grund = document.getElementById('bulk_grund').value.trim();
+    const selectedIds = Array.from(document.querySelectorAll('.protocol-checkbox:checked'))
+                            .map(cb => cb.value);
+
+    if (!grund) {
+        alert('Bitte geben Sie einen Grund für die Löschung an.');
+        return;
+    }
+
+    if (selectedIds.length === 0) {
+        alert('Keine Protokolle ausgewählt.');
+        return;
+    }
+
+    if (confirm(`${selectedIds.length} Protokoll(e) unwiderruflich löschen?`)) {
+        // Hier würde der AJAX-Call für Bulk-Delete erfolgen
+        // Für jetzt simulieren wir es mit einzelnen Löschungen
+
+        selectedIds.forEach(id => {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/protokoll/${id}/loeschen`;
+
+            const grundInput = document.createElement('input');
+            grundInput.type = 'hidden';
+            grundInput.name = 'grund';
+            grundInput.value = grund;
+            form.appendChild(grundInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
+});
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit on input for search fields
+    ['user', 'pruefer', 'hashtag'].forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', debounceSearch);
+        }
+    });
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Initialize selection state
+    updateBulkActions();
+});
+</script>
+{% endblock %}
+
+<!-- Update für templates/protokolle.html (normale Nutzer-Ansicht) -->
+<!-- Füge diesen Block in die bestehende protokolle.html am Ende jedes Protokoll-Items hinzu: -->
+
+{% if is_admin %}
+<div class="admin-controls" style="text-align: right; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(196, 207, 219, 0.2);">
+    <a href="{{ url_for('admin_protokoll_details', protokoll_id=protokoll[0]) }}"
+       class="btn btn-outline btn-sm" title="Admin: Details">
+        🔧 Admin
+    </a>
+    <a href="{{ url_for('admin_protokoll_bearbeiten', protokoll_id=protokoll[0]) }}"
+       class="btn btn-secondary btn-sm" title="Admin: Bearbeiten">
+        ✏️
+    </a>
+</div>
+{% endif %}

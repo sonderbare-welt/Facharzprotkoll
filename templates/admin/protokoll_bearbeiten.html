@@ -1,0 +1,401 @@
+<!-- templates/admin/protokoll_bearbeiten.html -->
+{% extends "base.html" %}
+
+{% block title %}Protokoll #{{ protokoll.id }} bearbeiten - Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="card-title">✏️ Protokoll #{{ protokoll.id }} bearbeiten</h1>
+                <p class="card-subtitle">Erstellt von {{ protokoll.user_name }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_protokoll_details', protokoll_id=protokoll.id) }}" class="btn btn-secondary">
+                    ← Zurück zu Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <strong>🔧 Administrator-Bearbeitung</strong><br>
+    Sie bearbeiten dieses Protokoll als Administrator. Der ursprüngliche Autor wird über Änderungen benachrichtigt.
+</div>
+
+<form method="POST" id="adminEditForm">
+    <div class="row">
+        <div class="col-8">
+            <!-- Grunddaten -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📅 Grunddaten der Prüfung</h3>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="datum" class="form-label">Prüfungsdatum *</label>
+                            <input type="date" id="datum" name="datum" class="form-control"
+                                   value="{{ protokoll.datum }}" required>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="bundesland" class="form-label">Bundesland *</label>
+                            <select id="bundesland" name="bundesland" class="form-control" required onchange="loadPruefer()">
+                                <option value="">Bitte wählen...</option>
+                                {% for bl in bundeslaender %}
+                                    <option value="{{ bl }}" {% if bl == protokoll.bundesland %}selected{% endif %}>{{ bl }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prüfer Auswahl -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">👨‍⚕️ Prüfungs-Kommission</h3>
+                    <p class="card-subtitle">Wählen Sie drei verschiedene Prüfer aus</p>
+                </div>
+
+                <div class="row">
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label for="pruefer1" class="form-label">Hauptprüfer *</label>
+                            <select id="pruefer1" name="pruefer1" class="form-control" required>
+                                <option value="">Lädt...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label for="pruefer2" class="form-label">Prüfer 2 *</label>
+                            <select id="pruefer2" name="pruefer2" class="form-control" required>
+                                <option value="">Lädt...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="form-group">
+                            <label for="pruefer3" class="form-label">Prüfer 3 *</label>
+                            <select id="pruefer3" name="pruefer3" class="form-control" required>
+                                <option value="">Lädt...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prüfungsinhalt -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📝 Prüfungsinhalt</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="hashtags" class="form-label">Hashtags (Themenbereiche)</label>
+                    <input type="text" id="hashtags" name="hashtags" class="form-control"
+                           value="{{ protokoll.hashtags or '' }}"
+                           placeholder="z.B. #Onkologie #Prostata #Bildgebung"
+                           list="hashtag-suggestions">
+                    <datalist id="hashtag-suggestions">
+                        {% for hashtag in predefined_hashtags %}
+                            <option value="{{ hashtag }}">
+                        {% endfor %}
+                    </datalist>
+                    <small class="form-help">Trennen Sie mehrere Hashtags mit Leerzeichen.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="inhalt" class="form-label">Prüfungsinhalt *</label>
+                    <textarea id="inhalt" name="inhalt" class="form-control" rows="12" required
+                              placeholder="Beschreiben Sie detailliert den Ablauf der Prüfung, gestellte Fragen, Fälle, etc.">{{ protokoll.inhalt }}</textarea>
+                    <small class="form-help">
+                        <span id="characterCount">{{ protokoll.inhalt|length }}</span> Zeichen
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="kommentar" class="form-label">Persönlicher Kommentar</label>
+                    <textarea id="kommentar" name="kommentar" class="form-control" rows="4"
+                              placeholder="Persönliche Anmerkungen, Tipps oder Einschätzungen...">{{ protokoll.kommentar or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-4">
+            <!-- Admin Notizen -->
+            <div class="sidebar">
+                <div class="card-header">
+                    <h3 class="card-title">🔧 Administrator-Notizen</h3>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin_notiz" class="form-label">Notiz an den Autor</label>
+                    <textarea id="admin_notiz" name="admin_notiz" class="form-control" rows="4"
+                              placeholder="Optional: Nachricht an den ursprünglichen Autor über die vorgenommenen Änderungen..."></textarea>
+                    <small class="form-help">Diese Nachricht wird dem Autor per E-Mail gesendet.</small>
+                </div>
+
+                <div class="admin-info">
+                    <h4>ℹ️ Bearbeitungshinweise</h4>
+                    <ul>
+                        <li>Alle Änderungen werden protokolliert</li>
+                        <li>Der Autor wird per E-Mail benachrichtigt</li>
+                        <li>Prüfen Sie die Angaben sorgfältig</li>
+                        <li>Verwenden Sie klare und konstruktive Sprache</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Originaldaten -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="card-title">📋 Original-Daten</h3>
+                </div>
+
+                <div class="original-data">
+                    <div class="original-item">
+                        <strong>Autor:</strong> {{ protokoll.user_name }}
+                    </div>
+                    <div class="original-item">
+                        <strong>Erstellt:</strong> {{ protokoll.created_at[:16] if protokoll.created_at else 'Unbekannt' }}
+                    </div>
+                    <div class="original-item">
+                        <strong>Protokoll-ID:</strong> #{{ protokoll.id }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speicher-Aktionen -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="card-title">💾 Speichern</h3>
+                </div>
+
+                <div class="save-actions">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        💾 Änderungen speichern
+                    </button>
+
+                    <a href="{{ url_for('admin_protokoll_details', protokoll_id=protokoll.id) }}"
+                       class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;">
+                        ❌ Abbrechen
+                    </a>
+
+                    <button type="button" onclick="previewChanges()"
+                            class="btn btn-outline" style="width: 100%; margin-top: 0.5rem;">
+                        👁️ Vorschau
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+/* Admin Edit Styles */
+.admin-info {
+    background: rgba(96, 106, 172, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.admin-info h4 {
+    color: var(--primary-purple);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.admin-info ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.admin-info li {
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+}
+
+.original-data {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.original-item {
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    background: rgba(196, 207, 219, 0.1);
+    border-radius: 6px;
+}
+
+.original-item strong {
+    color: var(--primary-purple);
+}
+
+.save-actions {
+    display: flex;
+    flex-direction: column;
+}
+
+.character-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 0.25rem;
+}
+
+/* Form Enhancements */
+#inhalt {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+.form-group textarea:focus {
+    box-shadow: 0 0 0 3px rgba(63, 163, 87, 0.1);
+}
+
+/* Preview Modal would go here */
+</style>
+
+<script>
+// Admin Protokoll Bearbeitung JavaScript
+const pruefer_data = {{pruefer_nach_bundesland | tojson }};
+const current_pruefer = {
+    pruefer1: {{ protokoll.pruefer1_id }},
+    pruefer2: {{ protokoll.pruefer2_id }},
+    pruefer3: {{ protokoll.pruefer3_id }}
+};
+
+function loadPruefer() {
+    const bundesland = document.getElementById('bundesland').value;
+    const pruefer1 = document.getElementById('pruefer1');
+    const pruefer2 = document.getElementById('pruefer2');
+    const pruefer3 = document.getElementById('pruefer3');
+
+    // Reset Prüfer-Selects
+    [pruefer1, pruefer2, pruefer3].forEach(select => {
+        select.innerHTML = '<option value="">Lädt...</option>';
+    });
+
+    if (bundesland && pruefer_data[bundesland]) {
+        const options = '<option value="">Bitte wählen...</option>' +
+            pruefer_data[bundesland].map(pruefer =>
+                `<option value="${pruefer.id}">${pruefer.name}</option>`
+            ).join('');
+
+        [pruefer1, pruefer2, pruefer3].forEach(select => {
+            select.innerHTML = options;
+        });
+
+        // Aktuelle Auswahl wiederherstellen
+        pruefer1.value = current_pruefer.pruefer1;
+        pruefer2.value = current_pruefer.pruefer2;
+        pruefer3.value = current_pruefer.pruefer3;
+    } else {
+        [pruefer1, pruefer2, pruefer3].forEach(select => {
+            select.innerHTML = '<option value="">Erst Bundesland wählen</option>';
+        });
+    }
+}
+
+// Character Counter
+document.getElementById('inhalt').addEventListener('input', function(e) {
+    const count = e.target.value.length;
+    document.getElementById('characterCount').textContent = count;
+
+    // Color coding
+    const counter = document.getElementById('characterCount');
+    if (count < 100) {
+        counter.style.color = '#FF3B30';
+    } else if (count < 300) {
+        counter.style.color = '#FF9500';
+    } else {
+        counter.style.color = 'var(--primary-green)';
+    }
+});
+
+// Form Validation
+document.getElementById('adminEditForm').addEventListener('submit', function(e) {
+    const pruefer1 = document.getElementById('pruefer1').value;
+    const pruefer2 = document.getElementById('pruefer2').value;
+    const pruefer3 = document.getElementById('pruefer3').value;
+    const inhalt = document.getElementById('inhalt').value.trim();
+
+    // Prüfer-Validierung
+    if (pruefer1 === pruefer2 || pruefer1 === pruefer3 || pruefer2 === pruefer3) {
+        e.preventDefault();
+        alert('Alle drei Prüfer müssen unterschiedlich sein.');
+        return false;
+    }
+
+    // Inhalt-Validierung
+    if (inhalt.length < 10) {
+        e.preventDefault();
+        alert('Der Prüfungsinhalt muss mindestens 10 Zeichen lang sein.');
+        return false;
+    }
+
+    // Bestätigung für Admin-Bearbeitung
+    const adminNotiz = document.getElementById('admin_notiz').value.trim();
+    let confirmMessage = 'Protokoll als Administrator bearbeiten?';
+
+    if (adminNotiz) {
+        confirmMessage += '\n\nDer Autor wird per E-Mail über die Änderungen benachrichtigt.';
+    }
+
+    return confirm(confirmMessage);
+});
+
+function previewChanges() {
+    // Hier könnte eine Vorschau-Funktion implementiert werden
+    alert('Vorschau-Funktion wird implementiert...');
+}
+
+// Auto-save Draft (optional)
+let autosaveTimer;
+function setupAutosave() {
+    const fields = ['datum', 'bundesland', 'pruefer1', 'pruefer2', 'pruefer3', 'hashtags', 'inhalt', 'kommentar', 'admin_notiz'];
+
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                clearTimeout(autosaveTimer);
+                autosaveTimer = setTimeout(() => {
+                    console.log('Auto-save triggered for:', fieldId);
+                    // Hier könnte ein AJAX-Call zum Auto-Save erfolgen
+                }, 5000);
+            });
+        }
+    });
+}
+
+// Hashtag Auto-Complete
+document.getElementById('hashtags').addEventListener('input', function(e) {
+    // Enhanced hashtag handling could be implemented here
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Load Prüfer for current Bundesland
+    loadPruefer();
+
+    // Setup auto-save
+    setupAutosave();
+
+    // Set initial character count
+    const inhalt = document.getElementById('inhalt');
+    document.getElementById('characterCount').textContent = inhalt.value.length;
+});
+</script>
+{% endblock %}

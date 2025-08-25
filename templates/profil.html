@@ -1,0 +1,324 @@
+<!-- templates/profil.html -->
+{% extends "base.html" %}
+
+{% block title %}Mein Profil - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-8">
+        <!-- Profil Header -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="card-title">👨‍⚕️ Mein Profil</h1>
+                        <p class="card-subtitle">Übersicht Ihrer Kontoinformationen</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('profil_bearbeiten') }}" class="btn btn-primary">
+                            ✏️ Bearbeiten
+                        </a>
+                        <a href="{{ url_for('profil_export') }}" class="btn btn-outline" title="Daten exportieren (DSGVO)">
+                            📊 Export
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benutzer-Informationen -->
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Vollständiger Name</label>
+                        <div class="profile-info">{{ user.name }}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">E-Mail-Adresse</label>
+                        <div class="profile-info">{{ user.email }}</div>
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Ausbildungsjahr</label>
+                        <div class="profile-info">{{ user.ausbildungsjahr }}. Jahr</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Mitglied seit</label>
+                        <div class="profile-info">
+                            {% if user.mitglied_seit == 0 %}
+                                Heute
+                            {% elif user.mitglied_seit == 1 %}
+                                1 Tag
+                            {% else %}
+                                {{ user.mitglied_seit }} Tage
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.is_admin %}
+                <div class="alert alert-info">
+                    <strong>🔧 Administrator-Account</strong><br>
+                    Sie haben erweiterte Berechtigungen für die Plattform-Verwaltung.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Aktivitäts-Übersicht -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">📊 Meine Aktivitäten</h3>
+                <p class="card-subtitle">Übersicht Ihrer Beiträge zur Community</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">{{ user.anzahl_protokolle }}</span>
+                    <div class="stat-label">Erstellte Protokolle</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ user.mitglied_seit }}</span>
+                    <div class="stat-label">Tage Mitglied</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">
+                        {% if user.anzahl_protokolle > 0 %}
+                            {{ "%.1f"|format(user.anzahl_protokolle / (user.mitglied_seit + 1)) }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </span>
+                    <div class="stat-label">Protokolle/Tag</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">
+                        {% if user.anzahl_protokolle >= 10 %}
+                            🏆
+                        {% elif user.anzahl_protokolle >= 5 %}
+                            🥈
+                        {% elif user.anzahl_protokolle >= 1 %}
+                            🥉
+                        {% else %}
+                            📝
+                        {% endif %}
+                    </span>
+                    <div class="stat-label">Community-Status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Letzte Protokolle -->
+        {% if user.letzte_protokolle %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">📋 Meine letzten Protokolle</h3>
+                <p class="card-subtitle">Die 5 zuletzt erstellten Protokolle</p>
+            </div>
+
+            <div class="protocol-timeline">
+                {% for protokoll in user.letzte_protokolle %}
+                <div class="timeline-item">
+                    <div class="timeline-marker">📅</div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <strong>{{ protokoll[0] }}</strong>
+                            <small class="text-muted">bei {{ protokoll[1] }}</small>
+                        </div>
+                        {% if protokoll[2] %}
+                        <div class="timeline-hashtags">
+                            {% for hashtag in protokoll[2].split() %}
+                                <span class="hashtag">{{ hashtag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">
+                    Alle meine Protokolle anzeigen
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-4">
+        <!-- Schnellaktionen -->
+        <div class="sidebar">
+            <div class="card-header">
+                <h3 class="card-title">⚡ Schnellaktionen</h3>
+            </div>
+
+            <div class="quick-actions">
+                <a href="{{ url_for('neues_protokoll') }}" class="btn btn-primary">
+                    📝 Neues Protokoll erstellen
+                </a>
+                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">
+                    🔍 Protokolle durchsuchen
+                </a>
+                <a href="{{ url_for('profil_bearbeiten') }}" class="btn btn-outline">
+                    ✏️ Profil bearbeiten
+                </a>
+                <a href="{{ url_for('profil_export') }}" class="btn btn-outline">
+                    📊 Daten exportieren
+                </a>
+            </div>
+        </div>
+
+        <!-- Hilfe & Support -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">💡 Tipps</h3>
+            </div>
+
+            <div class="help-section">
+                <div class="help-item">
+                    <strong>🎯 Profil vervollständigen</strong>
+                    <p>Halten Sie Ihre Ausbildungsjahr-Angabe aktuell für relevante Inhalte.</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>📝 Mehr Protokolle erstellen</strong>
+                    <p>Ihre Erfahrungen helfen anderen bei der Prüfungsvorbereitung!</p>
+                </div>
+
+                <div class="help-item">
+                    <strong>🔒 Datenschutz</strong>
+                    <p>Sie können jederzeit Ihre Daten exportieren oder Ihr Profil löschen.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account-Verwaltung -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">⚙️ Account-Verwaltung</h3>
+            </div>
+
+            <div class="account-actions">
+                <a href="{{ url_for('profil_bearbeiten') }}" class="account-link">
+                    ✏️ Profil bearbeiten
+                </a>
+                <a href="{{ url_for('profil_export') }}" class="account-link">
+                    📊 Daten exportieren (DSGVO)
+                </a>
+                <a href="{{ url_for('profil_loeschen') }}" class="account-link text-danger">
+                    🗑️ Account löschen
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Profil-spezifische Styles */
+.profile-info {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--light-gray);
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.protocol-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+    border-left: 2px solid var(--light-gray);
+}
+
+.timeline-item:last-child {
+    border-left: none;
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -0.6rem;
+    top: 0;
+    width: 1.2rem;
+    height: 1.2rem;
+    background: var(--white);
+    border: 2px solid var(--primary-green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.timeline-content {
+    margin-left: 1rem;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-hashtags {
+    margin-top: 0.5rem;
+}
+
+.help-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.help-item {
+    padding: 1rem;
+    background: rgba(63, 163, 87, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-green);
+}
+
+.help-item strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--primary-green);
+}
+
+.help-item p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.account-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.account-link {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    font-weight: 500;
+}
+
+.account-link:hover {
+    background: rgba(196, 207, 219, 0.1);
+}
+
+.account-link.text-danger:hover {
+    background: rgba(255, 59, 48, 0.1);
+}
+</style>
+{% endblock %}

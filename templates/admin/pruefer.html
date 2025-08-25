@@ -1,0 +1,93 @@
+<!-- templates/admin/pruefer.html -->
+{% extends "base.html" %}
+
+{% block title %}Prüfer verwalten - Admin{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Prüfer verwalten 👨‍⚕️</h1>
+        <p class="card-subtitle">{{ pruefer|length }} Prüfer insgesamt</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Neuen Prüfer hinzufügen</h3>
+    </div>
+
+    <form method="POST" action="{{ url_for('neuer_pruefer') }}">
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label for="name" class="form-label">Name des Prüfers</label>
+                    <input type="text" id="name" name="name" class="form-control"
+                           placeholder="z.B. Prof. Dr. Müller" required>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="form-group">
+                    <label for="bundesland" class="form-label">Bundesland</label>
+                    <select id="bundesland" name="bundesland" class="form-control" required>
+                        <option value="">Bitte wählen...</option>
+                        {% for bl in bundeslaender %}
+                            <option value="{{ bl }}">{{ bl }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        ➕ Hinzufügen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Alle Prüfer</h3>
+    </div>
+
+    {% if pruefer %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Bundesland</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pruefer %}
+                <tr>
+                    <td>{{ p[1] }}</td>
+                    <td>{{ p[2] }}</td>
+                    <td>
+                        <a href="{{ url_for('delete_pruefer', pruefer_id=p[0]) }}"
+                           class="btn btn-danger btn-sm"
+                           onclick="return confirm('Prüfer {{ p[1] }} wirklich löschen?')">
+                            🗑️ Löschen
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="text-align: center; color: #86868b; padding: 2rem;">
+            Noch keine Prüfer vorhanden.
+        </p>
+    {% endif %}
+</div>
+
+<div style="text-align: center; margin-top: 2rem;">
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+        ← Zurück zum Admin-Dashboard
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,571 @@
+<!-- templates/admin/protokoll_details.html -->
+{% extends "base.html" %}
+
+{% block title %}Protokoll #{{ protokoll.id }} - Admin Details{% endblock %}
+
+{% block content %}
+<!-- Protokoll Header -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="card-title">📋 Protokoll #{{ protokoll.id }}</h1>
+                <p class="card-subtitle">{{ protokoll.datum }} • {{ protokoll.bundesland }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">
+                    ← Zurück zu Protokollen
+                </a>
+                <a href="{{ url_for('admin_protokoll_bearbeiten', protokoll_id=protokoll.id) }}"
+                   class="btn btn-primary">
+                    ✏️ Bearbeiten
+                </a>
+                <button onclick="showDeleteModal()" class="btn btn-danger">
+                    🗑️ Löschen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Protokoll Informationen -->
+<div class="row">
+    <div class="col-8">
+        <!-- Hauptinhalt -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">📝 Prüfungsinhalt</h3>
+                <div class="d-flex gap-1">
+                    {% if protokoll.hashtags %}
+                        {% for hashtag in protokoll.hashtags.split() %}
+                            <span class="hashtag">{{ hashtag }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="protocol-content">
+                <div class="content-section">
+                    <strong class="content-label">Prüfungsablauf:</strong>
+                    <div class="content-text">{{ protokoll.inhalt | replace('\n', '<br>') | safe }}</div>
+                </div>
+
+                {% if protokoll.kommentar %}
+                <div class="content-section">
+                    <strong class="content-label">Persönlicher Kommentar:</strong>
+                    <div class="content-text comment-text">{{ protokoll.kommentar | replace('\n', '<br>') | safe }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Prüfer Details -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">👨‍⚕️ Prüfungs-Kommission</h3>
+            </div>
+
+            <div class="examiner-grid">
+                <div class="examiner-card main-examiner">
+                    <div class="examiner-role">Hauptprüfer</div>
+                    <div class="examiner-name">{{ protokoll.pruefer1.name }}</div>
+                    <div class="examiner-location">{{ protokoll.pruefer1.bundesland }}</div>
+                </div>
+
+                <div class="examiner-card">
+                    <div class="examiner-role">Prüfer 2</div>
+                    <div class="examiner-name">{{ protokoll.pruefer2.name }}</div>
+                    <div class="examiner-location">{{ protokoll.pruefer2.bundesland }}</div>
+                </div>
+
+                <div class="examiner-card">
+                    <div class="examiner-role">Prüfer 3</div>
+                    <div class="examiner-name">{{ protokoll.pruefer3.name }}</div>
+                    <div class="examiner-location">{{ protokoll.pruefer3.bundesland }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <!-- Autor Information -->
+        <div class="sidebar">
+            <div class="card-header">
+                <h3 class="card-title">👤 Autor</h3>
+            </div>
+
+            <div class="author-info">
+                <div class="author-avatar">
+                    <span class="avatar-initials">{{ protokoll.user.name[0] if protokoll.user.name else '?' }}</span>
+                </div>
+                <div class="author-details">
+                    <div class="author-name">{{ protokoll.user.name }}</div>
+                    <div class="author-email">{{ protokoll.user.email }}</div>
+                    <a href="{{ url_for('benutzer_details', user_id=protokoll.user.id) }}"
+                       class="btn btn-outline btn-sm">
+                        👤 Profil anzeigen
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meta-Informationen -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">ℹ️ Meta-Daten</h3>
+            </div>
+
+            <div class="meta-info">
+                <div class="meta-item">
+                    <label class="meta-label">Protokoll-ID</label>
+                    <div class="meta-value">#{{ protokoll.id }}</div>
+                </div>
+
+                <div class="meta-item">
+                    <label class="meta-label">Prüfungsdatum</label>
+                    <div class="meta-value">{{ protokoll.datum }}</div>
+                </div>
+
+                <div class="meta-item">
+                    <label class="meta-label">Bundesland</label>
+                    <div class="meta-value">{{ protokoll.bundesland }}</div>
+                </div>
+
+                <div class="meta-item">
+                    <label class="meta-label">Erstellt am</label>
+                    <div class="meta-value">{{ protokoll.created_at[:16] if protokoll.created_at else 'Unbekannt' }}</div>
+                </div>
+
+                <div class="meta-item">
+                    <label class="meta-label">Zeichenanzahl</label>
+                    <div class="meta-value">{{ protokoll.inhalt|length }} Zeichen</div>
+                </div>
+
+                {% if protokoll.hashtags %}
+                <div class="meta-item">
+                    <label class="meta-label">Hashtags</label>
+                    <div class="meta-value">{{ protokoll.hashtags.split()|length }} Tags</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Admin Aktionen -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">🔧 Admin-Aktionen</h3>
+            </div>
+
+            <div class="admin-actions">
+                <a href="{{ url_for('admin_protokoll_bearbeiten', protokoll_id=protokoll.id) }}"
+                   class="admin-action-btn btn-primary">
+                    ✏️ Protokoll bearbeiten
+                </a>
+
+                <button onclick="showDeleteModal()" class="admin-action-btn btn-danger">
+                    🗑️ Protokoll löschen
+                </button>
+
+                <a href="{{ url_for('admin_protokolle') }}" class="admin-action-btn btn-secondary">
+                    📋 Alle Admin-Protokolle
+                </a>
+
+                <button onclick="generateReport()" class="admin-action-btn btn-outline">
+                    📊 Bericht generieren
+                </button>
+            </div>
+        </div>
+
+        <!-- Verwandte Protokolle -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="card-title">🔗 Ähnliche Protokolle</h3>
+            </div>
+
+            <div class="related-protocols">
+                <p class="text-muted">Protokolle mit ähnlichen Hashtags oder Prüfern...</p>
+                <!-- Hier könnten ähnliche Protokolle angezeigt werden -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🗑️ Protokoll löschen</h3>
+            <button onclick="hideDeleteModal()" class="btn btn-sm">✕</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('admin_protokoll_loeschen', protokoll_id=protokoll.id) }}">
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>⚠️ WARNUNG!</strong><br>
+                    Sie sind dabei, Protokoll #{{ protokoll.id }} vom {{ protokoll.datum }} unwiderruflich zu löschen.
+                    <br><br>
+                    <strong>Dies wird löschen:</strong>
+                    <ul>
+                        <li>Den kompletten Prüfungsinhalt ({{ protokoll.inhalt|length }} Zeichen)</li>
+                        <li>Alle Hashtags und Kommentare</li>
+                        <li>Die Zuordnung zu den Prüfern</li>
+                    </ul>
+                    <br>
+                    <strong>Der Autor ({{ protokoll.user.name }}) wird per E-Mail benachrichtigt.</strong>
+                </div>
+
+                <div class="form-group">
+                    <label for="grund" class="form-label">Grund für die Löschung *</label>
+                    <textarea id="grund" name="grund" class="form-control" rows="4" required
+                              placeholder="Bitte geben Sie einen Grund für die Löschung an, der dem Autor mitgeteilt wird..."></textarea>
+                    <small class="form-help">Dieser Grund wird dem Autor per E-Mail mitgeteilt.</small>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="hideDeleteModal()" class="btn btn-secondary">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    🗑️ Protokoll unwiderruflich löschen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Protokoll Details Styles */
+.protocol-content {
+    padding: 0;
+}
+
+.content-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(196, 207, 219, 0.2);
+}
+
+.content-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.content-label {
+    display: block;
+    color: var(--primary-green);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.content-text {
+    line-height: 1.7;
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.comment-text {
+    font-style: italic;
+    background: rgba(169, 201, 55, 0.05);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--secondary-green);
+}
+
+.examiner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.examiner-card {
+    background: rgba(96, 106, 172, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(96, 106, 172, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.examiner-card:hover {
+    transform: translateY(-2px);
+}
+
+.main-examiner {
+    background: rgba(63, 163, 87, 0.1);
+    border-color: rgba(63, 163, 87, 0.2);
+}
+
+.examiner-role {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.examiner-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.examiner-location {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.author-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.avatar-initials {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.author-details {
+    flex: 1;
+}
+
+.author-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.25rem;
+}
+
+.author-email {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 0.75rem;
+}
+
+.meta-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.meta-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meta-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.admin-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.admin-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.admin-action-btn.btn-primary {
+    background: var(--primary-green);
+    color: white;
+}
+
+.admin-action-btn.btn-primary:hover {
+    background: var(--secondary-green);
+    color: white;
+}
+
+.admin-action-btn.btn-danger {
+    background: #FF3B30;
+    color: white;
+}
+
+.admin-action-btn.btn-danger:hover {
+    background: #D70015;
+}
+
+.admin-action-btn.btn-secondary {
+    background: var(--primary-purple);
+    color: white;
+}
+
+.admin-action-btn.btn-secondary:hover {
+    background: #545a94;
+    color: white;
+}
+
+.admin-action-btn.btn-outline {
+    background: transparent;
+    color: var(--primary-green);
+    border: 2px solid var(--primary-green);
+}
+
+.admin-action-btn.btn-outline:hover {
+    background: var(--primary-green);
+    color: white;
+}
+
+.related-protocols {
+    padding: 1rem 0;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--light-gray);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .examiner-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .author-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    .admin-actions {
+        gap: 0.5rem;
+    }
+
+    .admin-action-btn {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
+    }
+}
+</style>
+
+<script>
+// Protokoll Details JavaScript
+function showDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    document.getElementById('grund').value = '';
+}
+
+function generateReport() {
+    // Hier könnte eine Report-Generierung implementiert werden
+    alert('Report-Funktion wird implementiert...');
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        hideDeleteModal();
+    }
+});
+
+// Form validation
+document.querySelector('#deleteModal form').addEventListener('submit', function(e) {
+    const grund = document.getElementById('grund').value.trim();
+
+    if (!grund) {
+        e.preventDefault();
+        alert('Bitte geben Sie einen Grund für die Löschung an.');
+        return false;
+    }
+
+    if (grund.length < 10) {
+        e.preventDefault();
+        alert('Der Grund muss mindestens 10 Zeichen lang sein.');
+        return false;
+    }
+
+    return confirm('Protokoll #{{ protokoll.id }} wirklich unwiderruflich löschen?');
+});
+</script>
+{% endblock %}
+

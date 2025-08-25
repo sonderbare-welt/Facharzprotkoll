@@ -1,0 +1,4 @@
+Flask==2.3.3
+Flask-Mail==0.9.1
+Werkzeug==2.3.7
+schedule==1.2.0

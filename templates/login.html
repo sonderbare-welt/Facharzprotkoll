@@ -1,0 +1,35 @@
+<!-- templates/login.html -->
+{% extends "base.html" %}
+
+{% block title %}Anmelden - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-6" style="margin: 0 auto;">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Anmelden</h2>
+                <p class="card-subtitle">Melden Sie sich mit Ihren Zugangsdaten an</p>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="email" class="form-label">E-Mail-Adresse</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Passwort</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Anmelden</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p>Noch kein Account? <a href="{{ url_for('register') }}" style="color: #007AFF;">Jetzt registrieren</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

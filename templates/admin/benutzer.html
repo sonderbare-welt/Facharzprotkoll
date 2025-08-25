@@ -1,0 +1,722 @@
+<!-- templates/admin/benutzer.html -->
+{% extends "base.html" %}
+
+{% block title %}Benutzerverwaltung - Admin{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="card-title">👥 Benutzerverwaltung</h1>
+                <p class="card-subtitle">{{ gesamt_benutzer }} Benutzer registriert</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                    ← Admin Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiken -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-number">{{ wartende_benutzer }}</span>
+        <div class="stat-label">Warten auf Freischaltung</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ aktive_benutzer }}</span>
+        <div class="stat-label">Aktive Benutzer</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ admin_benutzer }}</span>
+        <div class="stat-label">Administratoren</div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-number">{{ gesamt_benutzer }}</span>
+        <div class="stat-label">Gesamt Benutzer</div>
+    </div>
+</div>
+
+<!-- Filter und Suche -->
+<div class="filter-section">
+    <form method="GET" id="filterForm">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="search" class="form-label">Benutzer suchen</label>
+                <input type="text" id="search" name="search" class="form-control"
+                       placeholder="Name oder E-Mail eingeben..." value="{{ search_query }}"
+                       onkeyup="debounceSearch()">
+            </div>
+
+            <div class="filter-group">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" name="status" class="form-control" onchange="submitFilter()">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Alle Benutzer</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>🕐 Wartend ({{ wartende_benutzer }})</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>✅ Aktiv ({{ aktive_benutzer }})</option>
+                    <option value="admin" {% if status_filter == 'admin' %}selected{% endif %}>🔧 Admin ({{ admin_benutzer }})</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort" class="form-label">Sortierung</label>
+                <select id="sort" name="sort" class="form-control" onchange="submitFilter()">
+                    <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>Registrierungsdatum</option>
+                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+                    <option value="email" {% if sort_by == 'email' %}selected{% endif %}>E-Mail</option>
+                    <option value="protokolle_count" {% if sort_by == 'protokolle_count' %}selected{% endif %}>Anzahl Protokolle</option>
+                </select>
+                <input type="hidden" name="order" value="{{ sort_order }}">
+            </div>
+
+            <div class="filter-group">
+                <button type="button" onclick="toggleSortOrder()" class="btn btn-outline" title="Sortierreihenfolge umkehren">
+                    {% if sort_order == 'asc' %}⬆️{% else %}⬇️{% endif %}
+                </button>
+                <button type="button" onclick="resetFilters()" class="btn btn-secondary">Zurücksetzen</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Bulk Actions -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="card-title">Benutzer-Liste</h3>
+            <div class="bulk-actions" style="display: none;">
+                <button onclick="showBulkActionModal()" class="btn btn-primary btn-sm">
+                    ⚡ Bulk-Aktionen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if benutzer %}
+        <form id="bulkForm">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        </th>
+                        <th>Benutzer</th>
+                        <th>Status</th>
+                        <th>Ausbildungsjahr</th>
+                        <th>Protokolle</th>
+                        <th>Registriert</th>
+                        <th style="width: 250px;">Aktionen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in benutzer %}
+                    <tr class="user-row {% if user[0] == session.user_id %}current-user{% endif %}">
+                        <td>
+                            {% if user[0] != session.user_id %}
+                            <input type="checkbox" name="user_ids" value="{{ user[0] }}"
+                                   class="user-checkbox" onchange="updateBulkActions()">
+                            {% else %}
+                            <span title="Sie selbst">👤</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-name">
+                                    <strong>{{ user[1] }}</strong>
+                                    {% if user[7] %}<span class="admin-badge">🔧 Admin</span>{% endif %}
+                                    {% if user[0] == session.user_id %}<span class="self-badge">Sie</span>{% endif %}
+                                </div>
+                                <div class="user-email">{{ user[2] }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if not user[5] %}
+                                <span class="status-badge status-unverified">📧 Unverifiziert</span>
+                            {% elif not user[6] %}
+                                <span class="status-badge status-pending">🕐 Wartend</span>
+                            {% elif user[7] %}
+                                <span class="status-badge status-admin">🔧 Administrator</span>
+                            {% else %}
+                                <span class="status-badge status-active">✅ Aktiv</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="year-badge">{{ user[3] }}. Jahr</span>
+                        </td>
+                        <td>
+                            <div class="protocol-stats">
+                                <span class="protocol-count">{{ user[8] }}</span>
+                                {% if user[9] %}
+                                    <small class="last-protocol">Letztes: {{ user[9][:10] }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="registration-date">{{ user[4][:10] if user[4] else 'Unbekannt' }}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('benutzer_details', user_id=user[0]) }}"
+                                   class="btn btn-outline btn-sm" title="Details anzeigen">
+                                    👁️
+                                </a>
+
+                                {% if user[0] != session.user_id %}
+                                    <!-- Admin Status Toggle -->
+                                    {% if user[7] %}
+                                        <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user[0]) }}" style="display: inline;">
+                                            <input type="hidden" name="action" value="demote">
+                                            <button type="submit" class="btn btn-warning btn-sm"
+                                                    title="Admin-Status entfernen"
+                                                    onclick="return confirm('Admin-Status von {{ user[1] }} wirklich entfernen?')">
+                                                ⬇️
+                                            </button>
+                                        </form>
+                                    {% elif user[6] %}
+                                        <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user[0]) }}" style="display: inline;">
+                                            <input type="hidden" name="action" value="promote">
+                                            <button type="submit" class="btn btn-success btn-sm"
+                                                    title="Zum Admin ernennen"
+                                                    onclick="return confirm('{{ user[1] }} zum Administrator ernennen?')">
+                                                ⬆️
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <!-- Approve/Suspend Toggle -->
+                                    {% if user[5] and not user[6] %}
+                                        <a href="{{ url_for('approve_user', user_id=user[0]) }}"
+                                           class="btn btn-primary btn-sm" title="Freischalten"
+                                           onclick="return confirm('Benutzer {{ user[1] }} freischalten?')">
+                                            ✅
+                                        </a>
+                                    {% elif user[6] %}
+                                        <button onclick="showSuspendModal({{ user[0] }}, '{{ user[1] }}')"
+                                                class="btn btn-danger btn-sm" title="Sperren">
+                                            🚫
+                                        </button>
+                                    {% else %}
+                                        <button onclick="showUnsuspendModal({{ user[0] }}, '{{ user[1] }}')"
+                                                class="btn btn-secondary btn-sm" title="Entsperren">
+                                            🔓
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted" title="Eigenes Konto">🔒</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <h3>Keine Benutzer gefunden</h3>
+            {% if search_query or status_filter != 'all' %}
+                <p>Versuchen Sie andere Filterkriterien oder
+                   <button onclick="resetFilters()" class="btn btn-outline">setzen Sie die Filter zurück</button>.
+                </p>
+            {% else %}
+                <p>Noch keine Benutzer registriert.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Bulk Actions Modal -->
+<div id="bulkActionModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>⚡ Bulk-Aktionen</h3>
+            <button onclick="hideBulkActionModal()" class="btn btn-sm">✕</button>
+        </div>
+
+        <form method="POST" action="{{ url_for('benutzer_bulk_actions') }}" id="bulkActionForm">
+            <div class="modal-body">
+                <p><span id="selectedCount">0</span> Benutzer ausgewählt.</p>
+
+                <div class="form-group">
+                    <label for="bulk_action" class="form-label">Aktion auswählen</label>
+                    <select id="bulk_action" name="action" class="form-control" required>
+                        <option value="">Bitte wählen...</option>
+                        <option value="approve">✅ Freischalten</option>
+                        <option value="suspend">🚫 Sperren</option>
+                        <option value="promote_admin">⬆️ Zu Administratoren ernennen</option>
+                        <option value="demote_admin">⬇️ Admin-Status entfernen</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>⚠️ Hinweis:</strong> Diese Aktion wird auf alle ausgewählten Benutzer angewendet.
+                    Sie können keine Aktionen auf Ihr eigenes Konto anwenden.
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="hideBulkActionModal()" class="btn btn-secondary">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    ⚡ Ausführen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Suspend User Modal -->
+<div id="suspendModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🚫 Benutzer sperren</h3>
+            <button onclick="hideSuspendModal()" class="btn btn-sm">✕</button>
+        </div>
+
+        <form method="POST" id="suspendForm">
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>⚠️ Achtung!</strong><br>
+                    Sie sind dabei, den Benutzer <strong id="suspendUserName"></strong> zu sperren.
+                    Der Benutzer kann sich dann nicht mehr anmelden.
+                </div>
+
+                <div class="form-group">
+                    <label for="suspend_reason" class="form-label">Grund (Optional)</label>
+                    <textarea id="suspend_reason" name="reason" class="form-control" rows="3"
+                              placeholder="Grund für die Sperrung..."></textarea>
+                </div>
+
+                <input type="hidden" name="action" value="suspend">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="hideSuspendModal()" class="btn btn-secondary">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    🚫 Benutzer sperren
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Unsuspend User Modal -->
+<div id="unsuspendModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔓 Benutzer entsperren</h3>
+            <button onclick="hideUnsuspendModal()" class="btn btn-sm">✕</button>
+        </div>
+
+        <form method="POST" id="unsuspendForm">
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <strong>ℹ️ Information</strong><br>
+                    Sie sind dabei, den Benutzer <strong id="unsuspendUserName"></strong> zu entsperren.
+                    Der Benutzer kann sich dann wieder anmelden.
+                </div>
+
+                <input type="hidden" name="action" value="unsuspend">
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="hideUnsuspendModal()" class="btn btn-secondary">
+                    Abbrechen
+                </button>
+                <button type="submit" class="btn btn-success">
+                    🔓 Benutzer entsperren
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Benutzerverwaltung-spezifische Styles */
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.user-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.user-email {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.admin-badge {
+    background: linear-gradient(135deg, var(--primary-purple), var(--primary-green));
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.self-badge {
+    background: rgba(63, 163, 87, 0.1);
+    color: var(--primary-green);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.status-unverified {
+    background: rgba(255, 193, 7, 0.1);
+    color: #B8860B;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-pending {
+    background: rgba(255, 152, 0, 0.1);
+    color: #E65100;
+    border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.status-active {
+    background: rgba(63, 163, 87, 0.1);
+    color: var(--primary-green);
+    border: 1px solid rgba(63, 163, 87, 0.3);
+}
+
+.status-admin {
+    background: rgba(96, 106, 172, 0.1);
+    color: var(--primary-purple);
+    border: 1px solid rgba(96, 106, 172, 0.3);
+}
+
+.year-badge {
+    background: rgba(169, 201, 55, 0.1);
+    color: var(--secondary-green);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.protocol-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.protocol-count {
+    font-weight: 600;
+    color: var(--primary-green);
+}
+
+.last-protocol {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+.registration-date {
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.current-user {
+    background: rgba(63, 163, 87, 0.05);
+    border-left: 3px solid var(--primary-green);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.action-buttons .btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-buttons form {
+    margin: 0;
+}
+
+.bulk-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--text-dark);
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--light-gray);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .user-info {
+        gap: 0.125rem;
+    }
+
+    .user-name {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+
+    .action-buttons .btn {
+        min-width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+    }
+
+    .table th,
+    .table td {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .action-buttons,
+    .bulk-actions,
+    .filter-section {
+        display: none !important;
+    }
+
+    .status-badge {
+        border: 1px solid #000 !important;
+        background: white !important;
+        color: black !important;
+    }
+}
+</style>
+
+<script>
+// Benutzerverwaltung JavaScript
+let searchTimeout;
+
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        document.getElementById('filterForm').submit();
+    }, 500);
+}
+
+function submitFilter() {
+    document.getElementById('filterForm').submit();
+}
+
+function toggleSortOrder() {
+    const orderField = document.querySelector('input[name="order"]');
+    orderField.value = orderField.value === 'asc' ? 'desc' : 'asc';
+    submitFilter();
+}
+
+function resetFilters() {
+    window.location.href = '{{ url_for("admin_benutzer") }}';
+}
+
+function toggleSelectAll() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAll.checked;
+    });
+
+    updateBulkActions();
+}
+
+function updateBulkActions() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const bulkActions = document.querySelector('.bulk-actions');
+    const selectedCount = document.getElementById('selectedCount');
+
+    if (checkboxes.length > 0) {
+        bulkActions.style.display = 'flex';
+        if (selectedCount) selectedCount.textContent = checkboxes.length;
+    } else {
+        bulkActions.style.display = 'none';
+    }
+
+    // Update select all checkbox
+    const allCheckboxes = document.querySelectorAll('.user-checkbox');
+    const selectAll = document.getElementById('selectAll');
+    selectAll.checked = allCheckboxes.length > 0 && checkboxes.length === allCheckboxes.length;
+}
+
+// Bulk Actions Modal
+function showBulkActionModal() {
+    const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+    const modal = document.getElementById('bulkActionModal');
+    const form = document.getElementById('bulkActionForm');
+
+    // Clear existing hidden inputs
+    const existingInputs = form.querySelectorAll('input[name="user_ids"]');
+    existingInputs.forEach(input => input.remove());
+
+    // Add selected user IDs as hidden inputs
+    selectedCheckboxes.forEach(checkbox => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'user_ids';
+        input.value = checkbox.value;
+        form.appendChild(input);
+    });
+
+    document.getElementById('selectedCount').textContent = selectedCheckboxes.length;
+    modal.style.display = 'flex';
+}
+
+function hideBulkActionModal() {
+    document.getElementById('bulkActionModal').style.display = 'none';
+    document.getElementById('bulk_action').value = '';
+}
+
+// Suspend Modal
+function showSuspendModal(userId, userName) {
+    const modal = document.getElementById('suspendModal');
+    const form = document.getElementById('suspendForm');
+
+    document.getElementById('suspendUserName').textContent = userName;
+    form.action = `/admin/benutzer/${userId}/suspend`;
+    modal.style.display = 'flex';
+}
+
+function hideSuspendModal() {
+    document.getElementById('suspendModal').style.display = 'none';
+    document.getElementById('suspend_reason').value = '';
+}
+
+// Unsuspend Modal
+function showUnsuspendModal(userId, userName) {
+    const modal = document.getElementById('unsuspendModal');
+    const form = document.getElementById('unsuspendForm');
+
+    document.getElementById('unsuspendUserName').textContent = userName;
+    form.action = `/admin/benutzer/${userId}/suspend`;
+    modal.style.display = 'flex';
+}
+
+function hideUnsuspendModal() {
+    document.getElementById('unsuspendModal').style.display = 'none';
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Initialize bulk actions state
+    updateBulkActions();
+
+    // Form submissions
+    document.getElementById('bulkActionForm').addEventListener('submit', function(e) {
+        const action = document.getElementById('bulk_action').value;
+        const count = document.querySelectorAll('.user-checkbox:checked').length;
+
+        let confirmMessage = '';
+        switch(action) {
+            case 'approve':
+                confirmMessage = `${count} Benutzer freischalten?`;
+                break;
+            case 'suspend':
+                confirmMessage = `${count} Benutzer sperren?`;
+                break;
+            case 'promote_admin':
+                confirmMessage = `${count} Benutzer zu Administratoren ernennen?`;
+                break;
+            case 'demote_admin':
+                confirmMessage = `${count} Administratoren degradieren?`;
+                break;
+        }
+
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

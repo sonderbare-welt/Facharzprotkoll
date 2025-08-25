@@ -1,0 +1,66 @@
+<!-- templates/profil_bearbeiten.html -->
+{% extends "base.html" %}
+
+{% block title %}Profil bearbeiten - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-8" style="margin: 0 auto;">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">✏️ Profil bearbeiten</h1>
+                <p class="card-subtitle">Aktualisieren Sie Ihre Kontoinformationen</p>
+            </div>
+
+            <form method="POST" id="profileForm">
+                <!-- Persönliche Informationen -->
+                <div class="form-section">
+                    <h3 class="section-title">👤 Persönliche Informationen</h3>
+
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="name" class="form-label">Vollständiger Name *</label>
+                                <input type="text" id="name" name="name" class="form-control"
+                                       value="{{ user.name }}" required maxlength="100">
+                                <small class="form-help">Vor- und Nachname für die Community</small>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="ausbildungsjahr" class="form-label">Ausbildungsjahr *</label>
+                                <select id="ausbildungsjahr" name="ausbildungsjahr" class="form-control" required>
+                                    {% for jahr in range(1, 7) %}
+                                        <option value="{{ jahr }}" {% if user.ausbildungsjahr == jahr %}selected{% endif %}>
+                                            {{ jahr }}. Jahr
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-help">Ihr aktuelles Ausbildungsjahr</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">E-Mail-Adresse *</label>
+                        <input type="email" id="email" name="email" class="form-control"
+                               value="{{ user.email }}" required maxlength="150">
+                        <small class="form-help">Wird für Benachrichtigungen und Login verwendet</small>
+                    </div>
+                </div>
+
+                <!-- Passwort ändern (Optional) -->
+                <div class="form-section">
+                    <h3 class="section-title">🔒 Passwort ändern (Optional)</h3>
+                    <p class="text-muted mb-4">Lassen Sie die Felder leer, wenn Sie Ihr Passwort nicht ändern möchten.</p>
+
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label for="aktuelles_passwort" class="form-label">Aktuelles Passwort</label>
+                                <input type="password" id="aktuelles_passwort" name="aktuelles_passwort"
+                                       class="form-control" autocomplete="current-password">
+                                <small class="form-help">Nur erforderlich bei Passwort-Änderung</small>
+                            </div>
+Facharztprotkolle Urologie - Claude

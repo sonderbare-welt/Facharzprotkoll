@@ -1,0 +1,120 @@
+<!--                 ☀️ SONDERBARE ☀️
+                    \   |   |   |   /
+                 \    \ |   |   | /    /
+              \     \  \|   |   |/  /     /
+                \     \ |   |   | /     /
+             ──────────────────────────────
+                   \   \|   |   |/   /
+                \     \ |   |   | /     /
+              \     \  \|   |   |/  /     /
+                 \    \ |   |   | /    /
+                    \   |   |   |   /
+                      ╭──────────╮
+                    ╭─╯          ╰─╮
+                  ╭─╯      🌍      ╰─╮
+                ╭─╯    W E L T       ╰─╮
+              ╭─╯  ┌─────┐   ┌───┐     ╰─╮
+            ╭─╯    │ ░░░ │   │░░░│       ╰─╮
+          ╭─╯      │ ░░░ │   └───┘         ╰─╮
+        ╭─╯        └─────┘       ┌───┐       ╰─╮
+      ╭─╯              ┌─────┐   │░░░│         ╰─╮
+    ╭─╯                │ ░░░ │   │░░░│           ╰─╮
+  ╭─╯                  │ ░░░ │   └───┘             ╰─╮
+╭─╯                    └─────┘                       ╰─╮
+╰──────────────────────────────────────────────────────╯
+-->
+<!DOCTYPE html>
+<html lang="de" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GeSRU Facharztprotokolle{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/style.css') }}">
+
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="{{ url_for('index') }}" class="nav-brand">GeSRU Facharztprotokolle</a>
+                <ul class="nav-links">
+                    {% if session.user_id %}
+                        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                        <li><a href="{{ url_for('protokolle') }}">Protokolle</a></li>
+                        <li><a href="{{ url_for('neues_protokoll') }}">Neues Protokoll</a></li>
+                        <li><a href="https://www.gesru.de/">GeSRU</a></li>
+                        {% if session.is_admin %}
+                            <li><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+                        {% endif %}
+                        <li><a href="{{ url_for('logout') }}">Abmelden</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('login') }}">Anmelden</a></li>
+                        <li><a href="{{ url_for('register') }}">Registrieren</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'error' if category == 'error' else category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer>
+        <div class="card">
+            <div class="card-header">
+            <h3>Kontakt</h3>
+            </div>
+            <div class="card-body">
+                <p>German Society of Residents in Urology (GeSRU) e. V.<br>Germeringer Str. 32<br>82152 Planegg</p>
+                <p>Telefon: +49-8452-3064814<br>Telefax: +49-8452-3064799</p>
+                <p>E-Mail: <a href="#" data-mailto-token="ocknvq,kphqBigutw0fg" data-mailto-vector="2">facharztprotokolle(at)gesru.de</a><br>Internet: <a href="https://www.gesru.de" target="_blank">www.gesru.de</a></p>
+            </div>
+            <div class="card-footer">
+                <a href="/impressum" title="Impressum">Impressum</a><br><a href="/datenschutz" title="Datenschutzerklärung">Datenschutzerklärung</a>
+            </div>
+        </div>
+    </footer>
+    <script>
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 300);
+                }, 5000);
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

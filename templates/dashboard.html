@@ -1,0 +1,97 @@
+<!-- templates/dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Willkommen zurück, {{ session.user_name }}! 👋</h1>
+        <p class="card-subtitle">Du hast dich erfolgreich auf auf der Seite der Facharztprotokolle Urologie registriert</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Neueste Protokolle</h3>
+                <p class="card-subtitle">Die zuletzt hinzugefügten Prüfungsprotokolle:</p>
+            </div>
+
+            {% if neueste_protokolle %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Bundesland</th>
+                            <th>Hauptprüfer</th>
+                            <th>Themen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for protokoll in neueste_protokolle %}
+                        <tr>
+                            <td>{{ protokoll[0] }}</td>
+                            <td>{{ protokoll[1] }}</td>
+                            <td>{{ protokoll[2] }}</td>
+                            <td>
+                                {% if protokoll[3] %}
+                                    {% for hashtag in protokoll[3].split() %}
+                                        <span class="hashtag">{{ hashtag }}</span>
+                                    {% endfor %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="text-align: center; color: #86868b; padding: 2rem;">
+                    Noch keine Protokolle vorhanden.
+                </p>
+            {% endif %}
+
+            <div style="text-align: center; margin-top: 1rem;">
+                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">Alle Protokolle anzeigen</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Schnellaktionen</h3>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <a href="{{ url_for('neues_protokoll') }}" class="btn btn-primary">
+                    📝 Neues Protokoll erstellen
+                </a>
+                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">
+                    🔍 Protokolle durchsuchen
+                </a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Prüfung gehabt?</h3>
+                <p class="card-subtitle">Lassen Sie sich an Ihr Protokoll erinnern</p>
+            </div>
+
+            <form action="{{ url_for('erinnerung_erstellen') }}" method="POST">
+                <div class="form-group">
+                    <label for="pruefungsdatum" class="form-label">Prüfungsdatum</label>
+                    <input type="date" id="pruefungsdatum" name="pruefungsdatum" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    🔔 Erinnerung einrichten
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('neues_protokoll') }}" class="fab">+</a>
+{% endblock %}

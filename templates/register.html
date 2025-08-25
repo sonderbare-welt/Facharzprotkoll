@@ -1,0 +1,53 @@
+<!-- templates/register.html -->
+{% extends "base.html" %}
+
+{% block title %}Registrieren - Urologie Facharztprüfung{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-6" style="margin: 0 auto;">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Registrieren</h2>
+                <p class="card-subtitle">Erstellen Sie Ihren Account</p>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="name" class="form-label">Vollständiger Name</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">E-Mail-Adresse</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="ausbildungsjahr" class="form-label">Ausbildungsjahr</label>
+                    <select id="ausbildungsjahr" name="ausbildungsjahr" class="form-control" required>
+                        <option value="">Bitte wählen...</option>
+                        <option value="1">1. Jahr</option>
+                        <option value="2">2. Jahr</option>
+                        <option value="3">3. Jahr</option>
+                        <option value="4">4. Jahr</option>
+                        <option value="5">5. Jahr</option>
+                        <option value="6">6. Jahr</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Passwort</label>
+                    <input type="password" id="password" name="password" class="form-control" required minlength="6">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Registrieren</button>
+            </form>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <p>Bereits registriert? <a href="{{ url_for('login') }}" style="color: #007AFF;">Jetzt anmelden</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
