@@ -60,22 +60,21 @@
                         <strong>📅 {{ protokoll[1] }}</strong><br>
                         <small style="color: #86868b;">{{ protokoll[2] }}</small>
                     </div>
-                    <div class="col-6">
+                    <div class="col-3">
                         <strong>Prüfer:</strong><br>
                         <small>{{ protokoll[3] }}, {{ protokoll[4] }}, {{ protokoll[5] }}</small>
                     </div>
-                    <div class="col-3">
-                        <small style="color: #86868b;">von {{ protokoll[9] }}</small>
-                    </div>
-                </div>
-
-                {% if protokoll[6] %}
-                <div style="margin: 1rem 0;">
+                    {% if protokoll[6] %}
+                    <div class="col-6">
+                        <strong>Hashtags:</strong><br>
                     {% for hashtag in protokoll[6].split() %}
-                        <a href="{{ url_for('protokolle', hashtag=hashtag) }}" class="hashtag">{{ hashtag }}</a>
+                        <small style="color: #86868b;">
+                            <a href="{{ url_for('protokolle', hashtag=hashtag) }}" class="hashtag">{{ hashtag }}</a>
+                        </small>
                     {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
 
                 <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5ea;">
                     <strong>Prüfungsinhalt:</strong>

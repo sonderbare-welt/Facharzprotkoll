@@ -29,9 +29,9 @@ app.secret_key = secrets.token_hex(32)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'msondermann93@gmail.com'  # Hier Ihre E-Mail eintragen
+app.config['MAIL_USERNAME'] = 'facharztprotokolle@gesru.de'  # Hier Ihre E-Mail eintragen
 app.config['MAIL_PASSWORD'] = 'dsnfqeqetnfgxelw'  # Hier Ihr App-Passwort eintragen
-app.config['MAIL_DEFAULT_SENDER'] = 'msondermann93@gmail.com'
+app.config['MAIL_DEFAULT_SENDER'] = 'facharztprotokolle@gesru.de'
 
 mail = Mail(app)
 
@@ -1904,7 +1904,6 @@ def admin_pruefer():
 
 
 @app.route('/admin/pruefer/neu', methods=['POST'])
-@admin_required
 def neuer_pruefer():
     """Neuen Prüfer hinzufügen"""
     name = request.form.get('name')

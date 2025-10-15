@@ -2,11 +2,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="hero">
+<div class="hero" xmlns="http://www.w3.org/1999/html">
     <p class="card-header"><img src="https://www.gesru.de/fileadmin/templates/images/logo_gesru.png"></p>
     <h1 class="hero-title">Facharztprotokolle Urologie</h1>
     <p class="hero-subtitle">
-        Hier stellen wir als GeSRU die bundesweiten Gedächnisprotokolle der Facharztprüfungen in der Urologie Zusammen. Somit könnt ihr euch optimal auf die Facharztprüfung vorbereiten
+        Auf dieser Plattform stellt die GeSRU bundesweit gesammelte Gedächtnisprotokolle der Facharztprüfungen in der Urologie zur Verfügung.</br>
+        Die Protokolle bieten einen praxisnahen Einblick in Aufbau, Themen und Fragestellungen der mündlichen Prüfungen – direkt aus den Erfahrungen frisch geprüfter Kolleginnen und Kollegen. Damit habt ihr die Möglichkeit, euch zielgerichtet, strukturiert und realitätsnah auf eure Facharztprüfung vorzubereiten – und mit dem Wissen aus erster Hand den entscheidenden Vorsprung zu sichern.
     </p>
     {% if not session.user_id %}
         <div style="margin-top: 2rem;">

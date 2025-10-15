@@ -5,20 +5,22 @@
 
 {% block content %}
 <div class="card">
-    <h3>💡 Tipps für ein gutes Protokoll</h3>
-    <ul style="margin-top: 1rem;">
-        <li>Beschreiben Sie konkrete Fragen und Fälle</li>
-        <li>Notieren Sie die Prüfungsatmosphäre und das Verhalten der Prüfer</li>
-        <li>Verwenden Sie passende Hashtags für bessere Auffindbarkeit</li>
-        <li>Seien Sie ehrlich und konstruktiv in Ihren Kommentaren</li>
-        <li>Denken Sie daran: Ihre Erfahrung hilft anderen bei der Vorbereitung!</li>
-    </ul>
+    <div class="card-header"><h1>💡 Tipps für ein gutes Protokoll</h1></div>
+    <div class="card-body">
+        <ul style="margin-top: 1rem; margin-bottom: 1rem;">
+            <li>Beschreibe konkrete Fragen und Fälle</li>
+            <li>Notiere die Prüfungsatmosphäre und das Verhalten der Prüfer</li>
+            <li>Verwende passende Hashtags für bessere Auffindbarkeit</li>
+            <li>Sei ehrlich und konstruktiv in deinen Kommentaren</li>
+            <li>Denk daran: Deine Erfahrung hilft anderen bei der Vorbereitung!</li>
+        </ul>
+    </div>
 </div>
 
 <div class="card">
     <div class="card-header">
         <h1 class="card-title">Prüfungsinhalt</h1>
-        <p class="card-subtitle">Teilen Sie Ihre Prüfungserfahrung mit anderen</p>
+        <p class="card-subtitle">Teil deine Prüfungserfahrung mit anderen</p>
     </div>
 
     <form method="POST">
@@ -43,15 +45,15 @@
         </div>
 
         <div class="row">
-            <div class="col-4">
+            <div class="col-3">
                 <div class="form-group">
-                    <label for="pruefer1" class="form-label">Prüfer 1 (Hauptprüfer) *</label>
+                    <label for="pruefer1" class="form-label">Prüfer 1 (Hauptprüfer)*</label>
                     <select id="pruefer1" name="pruefer1" class="form-control" required>
                         <option value="">Erst Bundesland wählen</option>
                     </select>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
                 <div class="form-group">
                     <label for="pruefer2" class="form-label">Prüfer 2 *</label>
                     <select id="pruefer2" name="pruefer2" class="form-control" required>
@@ -59,7 +61,7 @@
                     </select>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
                 <div class="form-group">
                     <label for="pruefer3" class="form-label">Prüfer 3 *</label>
                     <select id="pruefer3" name="pruefer3" class="form-control" required>
@@ -67,31 +69,37 @@
                     </select>
                 </div>
             </div>
+            <div class="col-3">
+                <div class="form-group">
+                    <label>Dein Prüfer ist nicht dabei?</label>
+                    <p><a href="mailto:facharztprotokolle@gesru.de?cc=admin@gesru.de&subject=Neuer%20Pr%C3%BCfer&body=Hallo%3B%0A%0Aich%20konnte%20meinen%20Pr%C3%BCfer%20in%20der%20Liste%20leider%20nicht%20finden.%20K%C3%B6nntet%20ihr%20daher%20folgenden%20Pr%C3%BCfer%20hinzuf%C3%BCgen%3F%0A%0APr%C3%BCfer%3A%20NAME%0ABundesland%3A%20XXX%0A%0AViele%20Gr%C3%BC%C3%9Fe%0ADEINNAME">Dann schreib uns eine Mail</a></p>
+                </div>
+            </div>
+                <!--Prüfer hinzufügen-->
         </div>
-
         <div class="form-group">
             <label for="hashtags" class="form-label">Hashtags (Themenbereiche)</label>
             <input type="text" id="hashtags" name="hashtags" class="form-control"
-                   placeholder="z.B. #Onkologie #Prostata #Bildgebung"
+                   placeholder="z.B. #Kinderurologie #Prostatakarzinom #OP-Techniken"
                    list="hashtag-suggestions">
             <datalist id="hashtag-suggestions">
                 {% for hashtag in predefined_hashtags %}
                     <option value="{{ hashtag }}">
                 {% endfor %}
             </datalist>
-            <small style="color: #86868b;">Trennen Sie mehrere Hashtags mit Leerzeichen. Vorschläge erscheinen beim Tippen.</small>
+            <small style="color: #86868b;">Trennen Sie mehrere Hashtags mit Leerzeichen.</small>
         </div>
 
         <div class="form-group">
             <label for="inhalt" class="form-label">Prüfungsinhalt *</label>
             <textarea id="inhalt" name="inhalt" class="form-control" rows="8" required
-                      placeholder="Beschreiben Sie detailliert den Ablauf der Prüfung, gestellte Fragen, Fälle, etc."></textarea>
+                      placeholder="Beschreib hier den Inhalt der Prüfung; bspw. gestellte Fragen, Fälle, Fallstricke, etc."></textarea>
         </div>
 
         <div class="form-group">
             <label for="kommentar" class="form-label">Persönlicher Kommentar</label>
             <textarea id="kommentar" name="kommentar" class="form-control" rows="4"
-                      placeholder="Optionale Anmerkungen, Tipps oder persönliche Einschätzungen..."></textarea>
+                      placeholder="Hier ist Platz für Anmerkungen, Tipps, persönliche Einschätzungen, etc. Bitte Gib auch eine kleine Rückmeldung zur Atmosphäre, deinem Abschluss und einigen Besonderheiten. Bedenke aber das wir keine Beleidigungen akzeptieren. Sei daher bitte konstruktiv!"></textarea>
         </div>
 
         <div style="text-align: center; margin-top: 2rem;">
@@ -161,7 +169,7 @@ document.querySelector('form').addEventListener('submit', function(e) {
 
     if (pruefer1 === pruefer2 || pruefer1 === pruefer3 || pruefer2 === pruefer3) {
         e.preventDefault();
-        alert('Bitte wählen Sie drei verschiedene Prüfer aus.');
+        alert('Bitte wählen Sie drei verschiedene Prüfer aus. Solltest du in deiner Prüfung weniger als 3 Prüfer gehabt haben, dann wähle bitte Unbekannt aus. Sollte dein Prüfer nicht dabei sein dann schreib uns eine Mail. Ein Link dazu findest du daneben.');
         return false;
     }
 });
