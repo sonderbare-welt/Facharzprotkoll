@@ -7,7 +7,8 @@
 <div class="card">
     <div class="card-header">
         <h1 class="card-title">Willkommen zurück, {{ session.user_name }}! 👋</h1>
-        <p class="card-subtitle">Du hast dich erfolgreich auf auf der Seite der Facharztprotokolle Urologie registriert</p>
+        <p class="card-subtitle">Du hast dich erfolgreich auf auf der Seite der Facharztprotokolle Urologie registriert
+        </p>
     </div>
 </div>
 
@@ -20,40 +21,40 @@
             </div>
 
             {% if neueste_protokolle %}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Bundesland</th>
-                            <th>Hauptprüfer</th>
-                            <th>Themen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for protokoll in neueste_protokolle %}
-                        <tr>
-                            <td>{{ protokoll[0] }}</td>
-                            <td>{{ protokoll[1] }}</td>
-                            <td>{{ protokoll[2] }}</td>
-                            <td>
-                                {% if protokoll[3] %}
-                                    {% for hashtag in protokoll[3].split() %}
-                                        <span class="hashtag">{{ hashtag }}</span>
-                                    {% endfor %}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Bundesland</th>
+                        <th>Hauptprüfer</th>
+                        <th>Themen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for protokoll in neueste_protokolle %}
+                    <tr>
+                        <td>{{ protokoll[0] }}</td>
+                        <td>{{ protokoll[1] }}</td>
+                        <td>{{ protokoll[2] }}</td>
+                        <td>
+                            {% if protokoll[3] %}
+                            {% for hashtag in protokoll[3].split() %}
+                            <span class="hashtag">{{ hashtag }}</span>
+                            {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
             {% else %}
-                <p style="text-align: center; color: #86868b; padding: 2rem;">
-                    Noch keine Protokolle vorhanden.
-                </p>
+            <p style="text-align: center; color: #86868b; padding: 2rem;">
+                Noch keine Protokolle vorhanden.
+            </p>
             {% endif %}
 
             <div style="text-align: center; margin-top: 1rem;">
-                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">Alle Protokolle anzeigen</a>
+                <a href="{{ url_for('protocols.protokolle') }}" class="btn btn-secondary">Alle Protokolle anzeigen</a>
             </div>
         </div>
     </div>
@@ -65,10 +66,10 @@
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 1rem;">
-                <a href="{{ url_for('neues_protokoll') }}" class="btn btn-primary">
+                <a href="{{ url_for('protocols.neues_protokoll') }}" class="btn btn-primary">
                     📝 Neues Protokoll erstellen
                 </a>
-                <a href="{{ url_for('protokolle') }}" class="btn btn-secondary">
+                <a href="{{ url_for('protocols.protokolle') }}" class="btn btn-secondary">
                     🔍 Protokolle durchsuchen
                 </a>
             </div>
@@ -80,7 +81,7 @@
                 <p class="card-subtitle">Lassen Sie sich an Ihr Protokoll erinnern</p>
             </div>
 
-            <form action="{{ url_for('erinnerung_erstellen') }}" method="POST">
+            <form action="{{ url_for('protocols.erinnerung_erstellen') }}" method="POST">
                 <div class="form-group">
                     <label for="pruefungsdatum" class="form-label">Prüfungsdatum</label>
                     <input type="date" id="pruefungsdatum" name="pruefungsdatum" class="form-control" required>
@@ -93,5 +94,5 @@
     </div>
 </div>
 
-<a href="{{ url_for('neues_protokoll') }}" class="fab">+</a>
+<a href="{{ url_for('protocols.neues_protokoll') }}" class="fab">+</a>
 {% endblock %}

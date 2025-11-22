@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Prüfer bearbeiten - GeSRU Facharztprotokolle{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>Prüfer bearbeiten</h2>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" value="{{ pruefer['name'] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="bundesland">Bundesland</label>
+                <select id="bundesland" name="bundesland" required>
+                    {% for land in bundeslaender %}
+                        <option value="{{ land }}" {% if land == pruefer['bundesland'] %}selected{% endif %}>{{ land }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Speichern</button>
+                <a href="{{ url_for('admin.admin_pruefer') }}" class="btn btn-secondary">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

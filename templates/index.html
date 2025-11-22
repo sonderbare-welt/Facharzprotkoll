@@ -6,18 +6,23 @@
     <p class="card-header"><img src="https://www.gesru.de/fileadmin/templates/images/logo_gesru.png"></p>
     <h1 class="hero-title">Facharztprotokolle Urologie</h1>
     <p class="hero-subtitle">
-        Auf dieser Plattform stellt die GeSRU bundesweit gesammelte Gedächtnisprotokolle der Facharztprüfungen in der Urologie zur Verfügung.</br>
-        Die Protokolle bieten einen praxisnahen Einblick in Aufbau, Themen und Fragestellungen der mündlichen Prüfungen – direkt aus den Erfahrungen frisch geprüfter Kolleginnen und Kollegen. Damit habt ihr die Möglichkeit, euch zielgerichtet, strukturiert und realitätsnah auf eure Facharztprüfung vorzubereiten – und mit dem Wissen aus erster Hand den entscheidenden Vorsprung zu sichern.
+        Auf dieser Plattform stellt die GeSRU bundesweit gesammelte Gedächtnisprotokolle der Facharztprüfungen in der
+        Urologie zur Verfügung.</br>
+        Die Protokolle bieten einen praxisnahen Einblick in Aufbau, Themen und Fragestellungen der mündlichen Prüfungen
+        – direkt aus den Erfahrungen frisch geprüfter Kolleginnen und Kollegen. Damit habt ihr die Möglichkeit, euch
+        zielgerichtet, strukturiert und realitätsnah auf eure Facharztprüfung vorzubereiten – und mit dem Wissen aus
+        erster Hand den entscheidenden Vorsprung zu sichern.
     </p>
     {% if not session.user_id %}
-        <div style="margin-top: 2rem;">
-            <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-right: 1rem;">Jetzt registrieren</a>
-            <a href="{{ url_for('login') }}" class="btn btn-secondary">Anmelden</a>
-        </div>
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary" style="margin-right: 1rem;">Jetzt
+            registrieren</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Anmelden</a>
+    </div>
     {% else %}
-        <div style="margin-top: 2rem;">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Zum Dashboard</a>
-        </div>
+    <div style="margin-top: 2rem;">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">Zum Dashboard</a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}

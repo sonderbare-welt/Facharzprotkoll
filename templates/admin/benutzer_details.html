@@ -17,49 +17,49 @@
                 <p class="card-subtitle">{{ user.email }}</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ url_for('admin_benutzer') }}" class="btn btn-secondary">
+                <a href="{{ url_for('admin.admin_benutzer') }}" class="btn btn-secondary">
                     ← Zurück zur Liste
                 </a>
                 {% if user.id != session.user_id %}
-                    <div class="dropdown">
-                        <button class="btn btn-primary dropdown-toggle" onclick="toggleDropdown()">
-                            ⚙️ Aktionen
-                        </button>
-                        <div class="dropdown-menu" id="actionsDropdown">
-                            <!-- Admin Status -->
-                            {% if user.is_admin %}
-                                <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
-                                    <input type="hidden" name="action" value="demote">
-                                    <button type="submit" class="dropdown-item"
-                                            onclick="return confirm('Admin-Status wirklich entfernen?')">
-                                        ⬇️ Admin-Status entfernen
-                                    </button>
-                                </form>
-                            {% elif user.is_approved %}
-                                <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
-                                    <input type="hidden" name="action" value="promote">
-                                    <button type="submit" class="dropdown-item"
-                                            onclick="return confirm('Zum Administrator ernennen?')">
-                                        ⬆️ Zum Admin ernennen
-                                    </button>
-                                </form>
-                            {% endif %}
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" onclick="toggleDropdown()">
+                        ⚙️ Aktionen
+                    </button>
+                    <div class="dropdown-menu" id="actionsDropdown">
+                        <!-- Admin Status -->
+                        {% if user.is_admin %}
+                        <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                            <input type="hidden" name="action" value="demote">
+                            <button type="submit" class="dropdown-item"
+                                onclick="return confirm('Admin-Status wirklich entfernen?')">
+                                ⬇️ Admin-Status entfernen
+                            </button>
+                        </form>
+                        {% elif user.is_approved %}
+                        <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                            <input type="hidden" name="action" value="promote">
+                            <button type="submit" class="dropdown-item"
+                                onclick="return confirm('Zum Administrator ernennen?')">
+                                ⬆️ Zum Admin ernennen
+                            </button>
+                        </form>
+                        {% endif %}
 
-                            <!-- Approve/Suspend -->
-                            {% if user.is_approved %}
-                                <button onclick="showSuspendModal()" class="dropdown-item">
-                                    🚫 Benutzer sperren
-                                </button>
-                            {% else %}
-                                <form method="POST" action="{{ url_for('suspend_user', user_id=user.id) }}">
-                                    <input type="hidden" name="action" value="unsuspend">
-                                    <button type="submit" class="dropdown-item">
-                                        🔓 Benutzer entsperren
-                                    </button>
-                                </form>
-                            {% endif %}
-                        </div>
+                        <!-- Approve/Suspend -->
+                        {% if user.is_approved %}
+                        <button onclick="showSuspendModal()" class="dropdown-item">
+                            🚫 Benutzer sperren
+                        </button>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('suspend_user', user_id=user.id) }}">
+                            <input type="hidden" name="action" value="unsuspend">
+                            <button type="submit" class="dropdown-item">
+                                🔓 Benutzer entsperren
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -81,13 +81,13 @@
                         <label class="info-label">Status</label>
                         <div class="info-value">
                             {% if not user.is_verified %}
-                                <span class="status-badge status-unverified">📧 E-Mail nicht verifiziert</span>
+                            <span class="status-badge status-unverified">📧 E-Mail nicht verifiziert</span>
                             {% elif not user.is_approved %}
-                                <span class="status-badge status-pending">🕐 Wartet auf Freischaltung</span>
+                            <span class="status-badge status-pending">🕐 Wartet auf Freischaltung</span>
                             {% elif user.is_admin %}
-                                <span class="status-badge status-admin">🔧 Administrator</span>
+                            <span class="status-badge status-admin">🔧 Administrator</span>
                             {% else %}
-                                <span class="status-badge status-active">✅ Aktiver Benutzer</span>
+                            <span class="status-badge status-active">✅ Aktiver Benutzer</span>
                             {% endif %}
                         </div>
                     </div>
@@ -146,9 +146,9 @@
                 <div class="stat-card">
                     <span class="stat-number">
                         {% if user.protokoll_zeitraum and user.protokoll_zeitraum[0] and user.protokoll_zeitraum[1] %}
-                            {{ ((user.protokoll_zeitraum[1]|datetime) - (user.protokoll_zeitraum[0]|datetime)).days + 1 }}
+                        {{ ((user.protokoll_zeitraum[1]|datetime) - (user.protokoll_zeitraum[0]|datetime)).days + 1 }}
                         {% else %}
-                            0
+                        0
                         {% endif %}
                     </span>
                     <div class="stat-label">Tage aktiv</div>
@@ -166,10 +166,10 @@
 
             <div class="hashtag-cloud">
                 {% for hashtag, count in user.top_hashtags %}
-                    <span class="hashtag-with-count">
-                        <span class="hashtag">{{ hashtag }}</span>
-                        <span class="hashtag-count">{{ count }}</span>
-                    </span>
+                <span class="hashtag-with-count">
+                    <span class="hashtag">{{ hashtag }}</span>
+                    <span class="hashtag-count">{{ count }}</span>
+                </span>
                 {% endfor %}
             </div>
         </div>
@@ -195,7 +195,7 @@
                         {% if protokoll[3] %}
                         <div class="timeline-hashtags">
                             {% for hashtag in protokoll[3].split() %}
-                                <span class="hashtag">{{ hashtag }}</span>
+                            <span class="hashtag">{{ hashtag }}</span>
                             {% endfor %}
                         </div>
                         {% endif %}
@@ -219,45 +219,44 @@
 
             <div class="quick-actions">
                 {% if user.id != session.user_id %}
-                    {% if not user.is_verified %}
-                        <div class="alert alert-warning">
-                            <strong>📧 E-Mail nicht verifiziert</strong><br>
-                            Der Benutzer muss seine E-Mail-Adresse verifizieren.
-                        </div>
-                    {% elif not user.is_approved %}
-                        <a href="{{ url_for('approve_user', user_id=user.id) }}"
-                           class="btn btn-primary"
-                           onclick="return confirm('Benutzer {{ user.name }} freischalten?')">
-                            ✅ Benutzer freischalten
-                        </a>
-                    {% else %}
-                        {% if not user.is_admin %}
-                            <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
-                                <input type="hidden" name="action" value="promote">
-                                <button type="submit" class="btn btn-success"
-                                        onclick="return confirm('{{ user.name }} zum Administrator ernennen?')">
-                                    ⬆️ Zum Admin ernennen
-                                </button>
-                            </form>
-                        {% else %}
-                            <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
-                                <input type="hidden" name="action" value="demote">
-                                <button type="submit" class="btn btn-warning"
-                                        onclick="return confirm('Admin-Status von {{ user.name }} entfernen?')">
-                                    ⬇️ Admin-Status entfernen
-                                </button>
-                            </form>
-                        {% endif %}
-
-                        <button onclick="showSuspendModal()" class="btn btn-danger">
-                            🚫 Benutzer sperren
-                        </button>
-                    {% endif %}
+                {% if not user.is_verified %}
+                <div class="alert alert-warning">
+                    <strong>📧 E-Mail nicht verifiziert</strong><br>
+                    Der Benutzer muss seine E-Mail-Adresse verifizieren.
+                </div>
+                {% elif not user.is_approved %}
+                <a href="{{ url_for('approve_user', user_id=user.id) }}" class="btn btn-primary"
+                    onclick="return confirm('Benutzer {{ user.name }} freischalten?')">
+                    ✅ Benutzer freischalten
+                </a>
                 {% else %}
-                    <div class="alert alert-info">
-                        <strong>ℹ️ Eigenes Profil</strong><br>
-                        Sie können keine Aktionen auf Ihr eigenes Konto ausführen.
-                    </div>
+                {% if not user.is_admin %}
+                <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                    <input type="hidden" name="action" value="promote">
+                    <button type="submit" class="btn btn-success"
+                        onclick="return confirm('{{ user.name }} zum Administrator ernennen?')">
+                        ⬆️ Zum Admin ernennen
+                    </button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                    <input type="hidden" name="action" value="demote">
+                    <button type="submit" class="btn btn-warning"
+                        onclick="return confirm('Admin-Status von {{ user.name }} entfernen?')">
+                        ⬇️ Admin-Status entfernen
+                    </button>
+                </form>
+                {% endif %}
+
+                <button onclick="showSuspendModal()" class="btn btn-danger">
+                    🚫 Benutzer sperren
+                </button>
+                {% endif %}
+                {% else %}
+                <div class="alert alert-info">
+                    <strong>ℹ️ Eigenes Profil</strong><br>
+                    Sie können keine Aktionen auf Ihr eigenes Konto ausführen.
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -276,9 +275,9 @@
                     <div class="reminder-info">
                         <strong>Prüfung: {{ erinnerung[0] }}</strong>
                         {% if erinnerung[3] %}
-                            <span class="status-badge status-active">✅ Protokoll erstellt</span>
+                        <span class="status-badge status-active">✅ Protokoll erstellt</span>
                         {% else %}
-                            <span class="status-badge status-pending">🕐 Wartet auf Protokoll</span>
+                        <span class="status-badge status-pending">🕐 Wartet auf Protokoll</span>
                         {% endif %}
                     </div>
                     <div class="reminder-details">
@@ -353,7 +352,7 @@
                 <div class="form-group">
                     <label for="suspend_reason" class="form-label">Grund (Optional)</label>
                     <textarea id="suspend_reason" name="reason" class="form-control" rows="3"
-                              placeholder="Grund für die Sperrung..."></textarea>
+                        placeholder="Grund für die Sperrung..."></textarea>
                 </div>
 
                 <input type="hidden" name="action" value="suspend">
@@ -398,8 +397,7 @@
                 <label for="delete_confirmation" class="form-label">
                     Geben Sie "{{ user.name }}" ein, um zu bestätigen:
                 </label>
-                <input type="text" id="delete_confirmation" class="form-control"
-                       placeholder="{{ user.name }}" required>
+                <input type="text" id="delete_confirmation" class="form-control" placeholder="{{ user.name }}" required>
             </div>
         </div>
 
@@ -415,440 +413,440 @@
 </div>
 
 <style>
-/* Benutzer Details spezifische Styles */
-.admin-badge {
-    background: linear-gradient(135deg, var(--primary-purple), var(--primary-green));
-    color: white;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.5rem;
-}
+    /* Benutzer Details spezifische Styles */
+    .admin-badge {
+        background: linear-gradient(135deg, var(--primary-purple), var(--primary-green));
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
 
-.self-badge {
-    background: rgba(63, 163, 87, 0.1);
-    color: var(--primary-green);
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-left: 0.5rem;
-}
+    .self-badge {
+        background: rgba(63, 163, 87, 0.1);
+        color: var(--primary-green);
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
 
-.info-group {
-    margin-bottom: 1.5rem;
-}
+    .info-group {
+        margin-bottom: 1.5rem;
+    }
 
-.info-label {
-    display: block;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-}
+    .info-label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
 
-.info-value {
-    font-size: 1rem;
-    color: var(--text-dark);
-    font-weight: 500;
-}
+    .info-value {
+        font-size: 1rem;
+        color: var(--text-dark);
+        font-weight: 500;
+    }
 
-.status-badge {
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
 
-.status-unverified {
-    background: rgba(255, 193, 7, 0.1);
-    color: #B8860B;
-    border: 1px solid rgba(255, 193, 7, 0.3);
-}
+    .status-unverified {
+        background: rgba(255, 193, 7, 0.1);
+        color: #B8860B;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
 
-.status-pending {
-    background: rgba(255, 152, 0, 0.1);
-    color: #E65100;
-    border: 1px solid rgba(255, 152, 0, 0.3);
-}
+    .status-pending {
+        background: rgba(255, 152, 0, 0.1);
+        color: #E65100;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+    }
 
-.status-active {
-    background: rgba(63, 163, 87, 0.1);
-    color: var(--primary-green);
-    border: 1px solid rgba(63, 163, 87, 0.3);
-}
+    .status-active {
+        background: rgba(63, 163, 87, 0.1);
+        color: var(--primary-green);
+        border: 1px solid rgba(63, 163, 87, 0.3);
+    }
 
-.status-admin {
-    background: rgba(96, 106, 172, 0.1);
-    color: var(--primary-purple);
-    border: 1px solid rgba(96, 106, 172, 0.3);
-}
+    .status-admin {
+        background: rgba(96, 106, 172, 0.1);
+        color: var(--primary-purple);
+        border: 1px solid rgba(96, 106, 172, 0.3);
+    }
 
-.year-badge {
-    background: rgba(169, 201, 55, 0.1);
-    color: var(--secondary-green);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
+    .year-badge {
+        background: rgba(169, 201, 55, 0.1);
+        color: var(--secondary-green);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
 
-.hashtag-cloud {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
+    .hashtag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
 
-.hashtag-with-count {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-}
+    .hashtag-with-count {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
 
-.hashtag-count {
-    background: rgba(63, 163, 87, 0.1);
-    color: var(--primary-green);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    min-width: 20px;
-    text-align: center;
-}
+    .hashtag-count {
+        background: rgba(63, 163, 87, 0.1);
+        color: var(--primary-green);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        min-width: 20px;
+        text-align: center;
+    }
 
-.protocol-timeline {
-    position: relative;
-    padding-left: 2rem;
-}
+    .protocol-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
 
-.timeline-item {
-    position: relative;
-    padding-bottom: 1.5rem;
-    border-left: 2px solid var(--light-gray);
-}
+    .timeline-item {
+        position: relative;
+        padding-bottom: 1.5rem;
+        border-left: 2px solid var(--light-gray);
+    }
 
-.timeline-item:last-child {
-    border-left: none;
-    padding-bottom: 0;
-}
+    .timeline-item:last-child {
+        border-left: none;
+        padding-bottom: 0;
+    }
 
-.timeline-marker {
-    position: absolute;
-    left: -0.75rem;
-    top: 0;
-    width: 1.5rem;
-    height: 1.5rem;
-    background: var(--white);
-    border: 2px solid var(--primary-green);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-}
+    .timeline-marker {
+        position: absolute;
+        left: -0.75rem;
+        top: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        background: var(--white);
+        border: 2px solid var(--primary-green);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
 
-.timeline-content {
-    margin-left: 1.5rem;
-}
+    .timeline-content {
+        margin-left: 1.5rem;
+    }
 
-.timeline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.timeline-hashtags {
-    margin: 0.5rem 0;
-}
-
-.timeline-date {
-    color: var(--text-light);
-    font-size: 0.8rem;
-}
-
-.reminder-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.reminder-item {
-    padding: 1rem;
-    background: rgba(96, 106, 172, 0.05);
-    border-radius: 8px;
-    border-left: 3px solid var(--primary-purple);
-}
-
-.reminder-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.reminder-details {
-    color: var(--text-light);
-    font-size: 0.85rem;
-}
-
-.contact-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.contact-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.contact-item strong {
-    font-size: 0.85rem;
-    color: var(--text-light);
-}
-
-.contact-item a {
-    color: var(--primary-green);
-    text-decoration: none;
-}
-
-.contact-item a:hover {
-    text-decoration: underline;
-}
-
-.user-id {
-    font-family: monospace;
-    background: rgba(96, 106, 172, 0.1);
-    padding: 2px 4px;
-    border-radius: 4px;
-    font-size: 0.9rem;
-}
-
-.privacy-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.privacy-link {
-    padding: 0.75rem;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-    font-weight: 500;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    width: 100%;
-}
-
-.privacy-link:hover {
-    background: rgba(196, 207, 219, 0.1);
-}
-
-.privacy-link.text-danger:hover {
-    background: rgba(255, 59, 48, 0.1);
-}
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-toggle {
-    cursor: pointer;
-}
-
-.dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 100%;
-    background: var(--white);
-    min-width: 200px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    border: 1px solid var(--light-gray);
-    z-index: 1000;
-    margin-top: 0.25rem;
-}
-
-.dropdown-menu.show {
-    display: block;
-}
-
-.dropdown-item {
-    display: block;
-    width: 100%;
-    padding: 0.75rem 1rem;
-    color: var(--text-dark);
-    text-decoration: none;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.dropdown-item:hover {
-    background: rgba(196, 207, 219, 0.1);
-    color: var(--text-dark);
-}
-
-.dropdown-item form {
-    margin: 0;
-}
-
-/* Modal Styles */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    backdrop-filter: blur(4px);
-}
-
-.modal-content {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--light-gray);
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: var(--text-dark);
-}
-
-.modal-body {
-    padding: var(--spacing-lg);
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-lg);
-    border-top: 1px solid var(--light-gray);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
     .timeline-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .timeline-hashtags {
+        margin: 0.5rem 0;
+    }
+
+    .timeline-date {
+        color: var(--text-light);
+        font-size: 0.8rem;
+    }
+
+    .reminder-list {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .reminder-item {
+        padding: 1rem;
+        background: rgba(96, 106, 172, 0.05);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary-purple);
     }
 
     .reminder-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .reminder-details {
+        color: var(--text-light);
+        font-size: 0.85rem;
+    }
+
+    .contact-info {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .contact-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .contact-item strong {
+        font-size: 0.85rem;
+        color: var(--text-light);
+    }
+
+    .contact-item a {
+        color: var(--primary-green);
+        text-decoration: none;
+    }
+
+    .contact-item a:hover {
+        text-decoration: underline;
+    }
+
+    .user-id {
+        font-family: monospace;
+        background: rgba(96, 106, 172, 0.1);
+        padding: 2px 4px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .privacy-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .privacy-link {
+        padding: 0.75rem;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        font-weight: 500;
+        border: none;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .privacy-link:hover {
+        background: rgba(196, 207, 219, 0.1);
+    }
+
+    .privacy-link.text-danger:hover {
+        background: rgba(255, 59, 48, 0.1);
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-toggle {
+        cursor: pointer;
     }
 
     .dropdown-menu {
-        left: 0;
-        right: auto;
-        min-width: 160px;
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        background: var(--white);
+        min-width: 200px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        border: 1px solid var(--light-gray);
+        z-index: 1000;
+        margin-top: 0.25rem;
     }
-}
+
+    .dropdown-menu.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        color: var(--text-dark);
+        text-decoration: none;
+        border: none;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .dropdown-item:hover {
+        background: rgba(196, 207, 219, 0.1);
+        color: var(--text-dark);
+    }
+
+    .dropdown-item form {
+        margin: 0;
+    }
+
+    /* Modal Styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-lg);
+        border-bottom: 1px solid var(--light-gray);
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: var(--text-dark);
+    }
+
+    .modal-body {
+        padding: var(--spacing-lg);
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--spacing-sm);
+        padding: var(--spacing-lg);
+        border-top: 1px solid var(--light-gray);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .timeline-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .reminder-info {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .dropdown-menu {
+            left: 0;
+            right: auto;
+            min-width: 160px;
+        }
+    }
 </style>
 
 <script>
-// Benutzer Details JavaScript
-function toggleDropdown() {
-    const dropdown = document.getElementById('actionsDropdown');
-    dropdown.classList.toggle('show');
-}
-
-// Close dropdown when clicking outside
-window.addEventListener('click', function(event) {
-    if (!event.target.matches('.dropdown-toggle')) {
-        const dropdowns = document.getElementsByClassName('dropdown-menu');
-        for (let i = 0; i < dropdowns.length; i++) {
-            dropdowns[i].classList.remove('show');
-        }
+    // Benutzer Details JavaScript
+    function toggleDropdown() {
+        const dropdown = document.getElementById('actionsDropdown');
+        dropdown.classList.toggle('show');
     }
-});
 
-// Suspend Modal
-function showSuspendModal() {
-    document.getElementById('suspendModal').style.display = 'flex';
-}
-
-function hideSuspendModal() {
-    document.getElementById('suspendModal').style.display = 'none';
-    document.getElementById('suspend_reason').value = '';
-}
-
-// Delete User Modal
-function showDeleteUserModal() {
-    document.getElementById('deleteUserModal').style.display = 'flex';
-}
-
-function hideDeleteUserModal() {
-    document.getElementById('deleteUserModal').style.display = 'none';
-    document.getElementById('delete_confirmation').value = '';
-    document.getElementById('deleteConfirmBtn').disabled = true;
-}
-
-function executeDeleteUser() {
-    const confirmation = document.getElementById('delete_confirmation').value;
-    const userName = '{{ user.name }}';
-
-    if (confirmation === userName) {
-        // Hier würde der DELETE-Request gesendet werden
-        if (confirm('LETZTE WARNUNG: Account wird unwiderruflich gelöscht!')) {
-            // TODO: Implement delete user functionality
-            alert('Delete-Funktion muss noch implementiert werden');
-        }
-    }
-}
-
-// Delete confirmation validation
-document.getElementById('delete_confirmation').addEventListener('input', function(e) {
-    const confirmation = e.target.value;
-    const userName = '{{ user.name }}';
-    const deleteBtn = document.getElementById('deleteConfirmBtn');
-
-    deleteBtn.disabled = confirmation !== userName;
-});
-
-// Close modals when clicking outside
-window.addEventListener('click', function(event) {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function (event) {
+        if (!event.target.matches('.dropdown-toggle')) {
+            const dropdowns = document.getElementsByClassName('dropdown-menu');
+            for (let i = 0; i < dropdowns.length; i++) {
+                dropdowns[i].classList.remove('show');
+            }
         }
     });
-});
+
+    // Suspend Modal
+    function showSuspendModal() {
+        document.getElementById('suspendModal').style.display = 'flex';
+    }
+
+    function hideSuspendModal() {
+        document.getElementById('suspendModal').style.display = 'none';
+        document.getElementById('suspend_reason').value = '';
+    }
+
+    // Delete User Modal
+    function showDeleteUserModal() {
+        document.getElementById('deleteUserModal').style.display = 'flex';
+    }
+
+    function hideDeleteUserModal() {
+        document.getElementById('deleteUserModal').style.display = 'none';
+        document.getElementById('delete_confirmation').value = '';
+        document.getElementById('deleteConfirmBtn').disabled = true;
+    }
+
+    function executeDeleteUser() {
+        const confirmation = document.getElementById('delete_confirmation').value;
+        const userName = '{{ user.name }}';
+
+        if (confirmation === userName) {
+            // Hier würde der DELETE-Request gesendet werden
+            if (confirm('LETZTE WARNUNG: Account wird unwiderruflich gelöscht!')) {
+                // TODO: Implement delete user functionality
+                alert('Delete-Funktion muss noch implementiert werden');
+            }
+        }
+    }
+
+    // Delete confirmation validation
+    document.getElementById('delete_confirmation').addEventListener('input', function (e) {
+        const confirmation = e.target.value;
+        const userName = '{{ user.name }}';
+        const deleteBtn = document.getElementById('deleteConfirmBtn');
+
+        deleteBtn.disabled = confirmation !== userName;
+    });
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function (event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
 </script>
 {% endblock %}
