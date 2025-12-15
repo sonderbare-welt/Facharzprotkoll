@@ -148,25 +148,26 @@
         <div class="protocol-admin-item">
             <div class="protocol-header">
                 <div class="protocol-meta">
-                    <input type="checkbox" class="protocol-checkbox" value="{{ protokoll[0] }}"
+                    <input type="checkbox" class="protocol-checkbox" value="{{ protokoll['id'] }}"
                         onchange="updateBulkActions()">
-                    <div class="protocol-id">#{{ protokoll[0] }}</div>
-                    <div class="protocol-date">📅 {{ protokoll[1] }}</div>
-                    <div class="protocol-location">📍 {{ protokoll[2] }}</div>
-                    <div class="protocol-author">👤 {{ protokoll[9] }}</div>
+                    <div class="protocol-id">#{{ protokoll['id'] }}</div>
+                    <div class="protocol-date">📅 {{ protokoll['datum'] }}</div>
+                    <div class="protocol-location">📍 {{ protokoll['bundesland'] }}</div>
+                    <div class="protocol-author">👤 {{ protokoll['user_name'] }}</div>
                 </div>
 
                 <div class="protocol-actions">
-                    <a href="{{ url_for('admin.admin_protokoll_details', protokoll_id=protokoll[0]) }}"
+                    <a href="{{ url_for('admin.admin_protokoll_details', protokoll_id=protokoll['id']) }}"
                         class="btn btn-outline btn-sm" title="Details anzeigen">
                         👁️
                     </a>
-                    <a href="{{ url_for('admin.admin_protokoll_bearbeiten', protokoll_id=protokoll[0]) }}"
+                    <a href="{{ url_for('admin.admin_protokoll_bearbeiten', protokoll_id=protokoll['id']) }}"
                         class="btn btn-secondary btn-sm" title="Bearbeiten">
                         ✏️
                     </a>
-                    <button onclick="showDeleteModal({{ protokoll[0] }}, '{{ protokoll[1] }}', '{{ protokoll[9] }}')"
-                        class="btn btn-danger btn-sm" title="Löschen">
+                    <button type="button" class="btn btn-danger btn-sm" title="Löschen" data-id="{{ protokoll['id'] }}"
+                        data-datum="{{ protokoll['datum'] }}" data-user="{{ protokoll['user_name'] }}"
+                        onclick="showDeleteModal(this.dataset.id, this.dataset.datum, this.dataset.user)">
                         🗑️
                     </button>
                 </div>
@@ -174,12 +175,13 @@
 
             <div class="protocol-content">
                 <div class="protocol-examiners">
-                    <strong>Prüfer:</strong> {{ protokoll[3] }}, {{ protokoll[4] }}, {{ protokoll[5] }}
+                    <strong>Prüfer:</strong> {{ protokoll['pruefer1'] }}, {{ protokoll['pruefer2'] }}, {{
+                    protokoll['pruefer3'] }}
                 </div>
 
-                {% if protokoll[6] %}
+                {% if protokoll['hashtags'] %}
                 <div class="protocol-hashtags">
-                    {% for hashtag in protokoll[6].split() %}
+                    {% for hashtag in protokoll['hashtags'].split() %}
                     <span class="hashtag">{{ hashtag }}</span>
                     {% endfor %}
                 </div>
@@ -187,23 +189,26 @@
 
                 <div class="protocol-excerpt">
                     <strong>Inhalt:</strong>
-                    {{ protokoll[7][:200] }}{% if protokoll[7]|length > 200 %}...{% endif %}
+                    {{ protokoll['inhalt'][:200] }}{% if protokoll['inhalt']|length > 200 %}...{% endif %}
                 </div>
 
-                {% if protokoll[8] %}
+                {% if protokoll['kommentar'] %}
                 <div class="protocol-comment">
                     <strong>Kommentar:</strong>
-                    {{ protokoll[8][:100] }}{% if protokoll[8]|length > 100 %}...{% endif %}
+                    {{ protokoll['kommentar'][:100] }}{% if protokoll['kommentar']|length > 100 %}...{% endif %}
                 </div>
                 {% endif %}
             </div>
 
             <div class="protocol-footer">
                 <div class="protocol-stats">
-                    <span class="stat-item">📝 {{ protokoll[7]|length }} Zeichen</span>
-                    <span class="stat-item">🕐 {{ protokoll[10][:16] if protokoll[10] else 'Unbekannt' }}</span>
+                    <span class="stat-item">📝 {{ protokoll['inhalt']|length }} Zeichen</span>
+                    <span class="stat-item">🕐 {{ protokoll['created_at'].strftime('%d.%m.%Y %H:%M') if
+                        protokoll['created_at'] else
+                        'Unbekannt' }}</span>
                     <span class="stat-item">👤 <a
-                            href="{{ url_for('admin.benutzer_details', user_id=protokoll[11]) }}">{{ protokoll[9]
+                            href="{{ url_for('admin.benutzer_details', user_id=protokoll['user_id']) }}">{{
+                            protokoll['user_name']
                             }}</a></span>
                 </div>
             </div>
@@ -742,11 +747,11 @@
 {% if is_admin %}
 <div class="admin-controls"
     style="text-align: right; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(196, 207, 219, 0.2);">
-    <a href="{{ url_for('admin.admin_protokoll_details', protokoll_id=protokoll[0]) }}" class="btn btn-outline btn-sm"
-        title="Admin: Details">
+    <a href="{{ url_for('admin.admin_protokoll_details', protokoll_id=protokoll['id']) }}"
+        class="btn btn-outline btn-sm" title="Admin: Details">
         🔧 Admin
     </a>
-    <a href="{{ url_for('admin.admin_protokoll_bearbeiten', protokoll_id=protokoll[0]) }}"
+    <a href="{{ url_for('admin.admin_protokoll_bearbeiten', protokoll_id=protokoll['id']) }}"
         class="btn btn-secondary btn-sm" title="Admin: Bearbeiten">
         ✏️
     </a>

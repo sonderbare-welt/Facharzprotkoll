@@ -23,15 +23,12 @@ def init_db():
     
     # Benutzer-Tabelle
     db.execute('''
-        CREATE TABLE IF NOT EXISTS benutzer (
+        CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             passwort_hash TEXT NOT NULL,
-            vorname TEXT NOT NULL,
-            nachname TEXT NOT NULL,
-            klinik TEXT,
-            weiterbildungsjahr INTEGER,
-            bundesland TEXT,
+            name TEXT NOT NULL,
+            ausbildungsjahr INTEGER,
             is_admin BOOLEAN DEFAULT 0,
             is_approved BOOLEAN DEFAULT 0,
             is_verified BOOLEAN DEFAULT 0,
@@ -44,17 +41,23 @@ def init_db():
     db.execute('''
         CREATE TABLE IF NOT EXISTS protokolle (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            ersteller_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
             datum TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             pruefungsdatum DATE NOT NULL,
             bundesland TEXT NOT NULL,
             stadt TEXT NOT NULL,
-            pruefer1 TEXT NOT NULL,
-            pruefer2 TEXT NOT NULL,
-            pruefer3 TEXT NOT NULL,
+            pruefer1_id INTEGER NOT NULL,
+            pruefer2_id INTEGER NOT NULL,
+            pruefer3_id INTEGER NOT NULL,
             inhalt TEXT NOT NULL,
+            hashtags TEXT,
+            kommentar TEXT,
             status TEXT DEFAULT 'pending',
-            FOREIGN KEY (ersteller_id) REFERENCES benutzer (id)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (pruefer1_id) REFERENCES pruefer (id),
+            FOREIGN KEY (pruefer2_id) REFERENCES pruefer (id),
+            FOREIGN KEY (pruefer3_id) REFERENCES pruefer (id)
         )
     ''')
 
@@ -64,7 +67,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             titel TEXT,
             vorname TEXT,
-            nachname TEXT NOT NULL,
+            name TEXT NOT NULL,
             klinik TEXT,
             stadt TEXT,
             bundesland TEXT NOT NULL,
@@ -79,9 +82,11 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             pruefungsdatum DATE NOT NULL,
+            naechste_erinnerung TIMESTAMP,
+            protokoll_erstellt BOOLEAN DEFAULT 0,
             erinnerung_gesendet BOOLEAN DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES benutzer (id)
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
     
@@ -93,7 +98,7 @@ def init_db():
             action TEXT NOT NULL,
             details TEXT,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES benutzer (id)
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
     

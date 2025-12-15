@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Logs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1>Admin Logs (Letzte 100)</h1>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Zeitstempel</th>
+                    <th>Benutzer</th>
+                    <th>Aktion</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.timestamp }}</td>
+                    <td>{{ log.user_name }}</td>
+                    <td>{{ log.action }}</td>
+                    <td>{{ log.details }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">Keine Logs vorhanden.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

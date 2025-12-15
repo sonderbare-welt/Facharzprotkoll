@@ -28,7 +28,7 @@
                     <div class="dropdown-menu" id="actionsDropdown">
                         <!-- Admin Status -->
                         {% if user.is_admin %}
-                        <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                        <form method="POST" action="{{ url_for('admin.toggle_admin_status', user_id=user.id) }}">
                             <input type="hidden" name="action" value="demote">
                             <button type="submit" class="dropdown-item"
                                 onclick="return confirm('Admin-Status wirklich entfernen?')">
@@ -36,7 +36,7 @@
                             </button>
                         </form>
                         {% elif user.is_approved %}
-                        <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                        <form method="POST" action="{{ url_for('admin.toggle_admin_status', user_id=user.id) }}">
                             <input type="hidden" name="action" value="promote">
                             <button type="submit" class="dropdown-item"
                                 onclick="return confirm('Zum Administrator ernennen?')">
@@ -51,7 +51,7 @@
                             🚫 Benutzer sperren
                         </button>
                         {% else %}
-                        <form method="POST" action="{{ url_for('suspend_user', user_id=user.id) }}">
+                        <form method="POST" action="{{ url_for('admin.suspend_user', user_id=user.id) }}">
                             <input type="hidden" name="action" value="unsuspend">
                             <button type="submit" class="dropdown-item">
                                 🔓 Benutzer entsperren
@@ -101,7 +101,8 @@
 
                     <div class="info-group">
                         <label class="info-label">Registriert am</label>
-                        <div class="info-value">{{ user.created_at[:10] if user.created_at else 'Unbekannt' }}</div>
+                        <div class="info-value">{{ user.created_at.strftime('%d.%m.%Y') if user.created_at else
+                            'Unbekannt' }}</div>
                     </div>
                 </div>
 
@@ -200,7 +201,8 @@
                         </div>
                         {% endif %}
                         <div class="timeline-date">
-                            <small>Erstellt: {{ protokoll[4][:10] if protokoll[4] else 'Unbekannt' }}</small>
+                            <small>Erstellt: {{ protokoll[4].strftime('%d.%m.%Y') if protokoll[4] else 'Unbekannt'
+                                }}</small>
                         </div>
                     </div>
                 </div>
@@ -225,13 +227,13 @@
                     Der Benutzer muss seine E-Mail-Adresse verifizieren.
                 </div>
                 {% elif not user.is_approved %}
-                <a href="{{ url_for('approve_user', user_id=user.id) }}" class="btn btn-primary"
+                <a href="{{ url_for('admin.approve_user', user_id=user.id) }}" class="btn btn-primary"
                     onclick="return confirm('Benutzer {{ user.name }} freischalten?')">
                     ✅ Benutzer freischalten
                 </a>
                 {% else %}
                 {% if not user.is_admin %}
-                <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                <form method="POST" action="{{ url_for('admin.toggle_admin_status', user_id=user.id) }}">
                     <input type="hidden" name="action" value="promote">
                     <button type="submit" class="btn btn-success"
                         onclick="return confirm('{{ user.name }} zum Administrator ernennen?')">
@@ -239,7 +241,7 @@
                     </button>
                 </form>
                 {% else %}
-                <form method="POST" action="{{ url_for('toggle_admin_status', user_id=user.id) }}">
+                <form method="POST" action="{{ url_for('admin.toggle_admin_status', user_id=user.id) }}">
                     <input type="hidden" name="action" value="demote">
                     <button type="submit" class="btn btn-warning"
                         onclick="return confirm('Admin-Status von {{ user.name }} entfernen?')">
@@ -309,7 +311,7 @@
 
                 <div class="contact-item">
                     <strong>📅 Registriert</strong>
-                    <span>{{ user.created_at[:10] if user.created_at else 'Unbekannt' }}</span>
+                    <span>{{ user.created_at.strftime('%d.%m.%Y') if user.created_at else 'Unbekannt' }}</span>
                 </div>
             </div>
         </div>
@@ -341,7 +343,7 @@
             <button onclick="hideSuspendModal()" class="btn btn-sm">✕</button>
         </div>
 
-        <form method="POST" action="{{ url_for('suspend_user', user_id=user.id) }}">
+        <form method="POST" action="{{ url_for('admin.suspend_user', user_id=user.id) }}">
             <div class="modal-body">
                 <div class="alert alert-warning">
                     <strong>⚠️ Achtung!</strong><br>
@@ -819,24 +821,26 @@
 
     function executeDeleteUser() {
         const confirmation = document.getElementById('delete_confirmation').value;
-        const userName = '{{ user.name }}';
+        const userName = {{ user.name | tojson
+    }};
 
-        if (confirmation === userName) {
-            // Hier würde der DELETE-Request gesendet werden
-            if (confirm('LETZTE WARNUNG: Account wird unwiderruflich gelöscht!')) {
-                // TODO: Implement delete user functionality
-                alert('Delete-Funktion muss noch implementiert werden');
-            }
+    if (confirmation === userName) {
+        // Hier würde der DELETE-Request gesendet werden
+        if (confirm('LETZTE WARNUNG: Account wird unwiderruflich gelöscht!')) {
+            // TODO: Implement delete user functionality
+            alert('Delete-Funktion muss noch implementiert werden');
         }
+    }
     }
 
     // Delete confirmation validation
     document.getElementById('delete_confirmation').addEventListener('input', function (e) {
         const confirmation = e.target.value;
-        const userName = '{{ user.name }}';
-        const deleteBtn = document.getElementById('deleteConfirmBtn');
+        const userName = {{ user.name | tojson
+    }};
+    const deleteBtn = document.getElementById('deleteConfirmBtn');
 
-        deleteBtn.disabled = confirmation !== userName;
+    deleteBtn.disabled = confirmation !== userName;
     });
 
     // Close modals when clicking outside

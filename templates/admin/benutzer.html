@@ -161,9 +161,6 @@
                         </div>
                     </td>
                     <td>
-                        <span class="registration-date">{{ user[4][:10] if user[4] else 'Unbekannt' }}</span>
-                    </td>
-                    <td>
                         <div class="action-buttons">
                             <a href="{{ url_for('admin.benutzer_details', user_id=user[0]) }}"
                                 class="btn btn-outline btn-sm" title="Details anzeigen">

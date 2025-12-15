@@ -134,7 +134,8 @@
 
                 <div class="meta-item">
                     <label class="meta-label">Erstellt am</label>
-                    <div class="meta-value">{{ protokoll.created_at[:16] if protokoll.created_at else 'Unbekannt' }}
+                    <div class="meta-value">{{ protokoll.created_at.strftime('%d.%m.%Y %H:%M') if protokoll.created_at
+                        else 'Unbekannt' }}
                     </div>
                 </div>
 
@@ -200,7 +201,7 @@
             <button onclick="hideDeleteModal()" class="btn btn-sm">✕</button>
         </div>
 
-        <form method="POST" action="{{ url_for('admin_protokoll_loeschen', protokoll_id=protokoll.id) }}">
+        <form method="POST" action="{{ url_for('admin.admin_protokoll_loeschen', protokoll_id=protokoll.id) }}">
             <div class="modal-body">
                 <div class="alert alert-danger">
                     <strong>⚠️ WARNUNG!</strong><br>

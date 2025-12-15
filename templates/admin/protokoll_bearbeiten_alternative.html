@@ -1,4 +1,3 @@
-<!-- templates/admin/protokoll_bearbeiten.html -->
 {% extends "base.html" %}
 
 {% block title %}Protokoll #{{ protokoll.id }} bearbeiten - Admin{% endblock %}
@@ -12,7 +11,8 @@
                 <p class="card-subtitle">Erstellt von {{ protokoll.user_name }}</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ url_for('admin_protokoll_details', protokoll_id=protokoll.id) }}" class="btn btn-secondary">
+                <a href="{{ url_for('admin.admin_protokoll_details', protokoll_id=protokoll.id) }}"
+                    class="btn btn-secondary">
                     ← Zurück zu Details
                 </a>
             </div>
@@ -26,7 +26,6 @@
 </div>
 
 <form method="POST" id="adminEditForm">
-    {{ csrf_token() }}
     <div class="row">
         <div class="col-8">
             <!-- Grunddaten -->
@@ -40,16 +39,18 @@
                             <div class="form-group">
                                 <label for="datum" class="form-label">Prüfungsdatum *</label>
                                 <input type="date" id="datum" name="datum" class="form-control"
-                                       value="{{ protokoll.datum }}" required>
+                                    value="{{ protokoll.datum }}" required>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group">
                                 <label for="bundesland" class="form-label">Bundesland *</label>
-                                <select id="bundesland" name="bundesland" class="form-control" required onchange="loadPruefer()">
+                                <select id="bundesland" name="bundesland" class="form-control" required
+                                    onchange="loadPruefer()">
                                     <option value="">Bitte wählen...</option>
                                     {% for bl in bundeslaender %}
-                                        <option value="{{ bl }}" {% if bl == protokoll.bundesland %}selected{% endif %}>{{ bl }}</option>
+                                    <option value="{{ bl }}" {% if bl==protokoll.bundesland %}selected{% endif %}>{{ bl
+                                        }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -70,7 +71,7 @@
                             <div class="form-group">
                                 <label for="pruefer1" class="form-label">Hauptprüfer *</label>
                                 <select id="pruefer1" name="pruefer1" class="form-control" required>
-                                    <option value="">Lädt...</option>
+                                    <option value="">Bitte warten...</option>
                                 </select>
                             </div>
                         </div>
@@ -78,7 +79,7 @@
                             <div class="form-group">
                                 <label for="pruefer2" class="form-label">Prüfer 2 *</label>
                                 <select id="pruefer2" name="pruefer2" class="form-control" required>
-                                    <option value="">Lädt...</option>
+                                    <option value="">Bitte warten...</option>
                                 </select>
                             </div>
                         </div>
@@ -86,7 +87,7 @@
                             <div class="form-group">
                                 <label for="pruefer3" class="form-label">Prüfer 3 *</label>
                                 <select id="pruefer3" name="pruefer3" class="form-control" required>
-                                    <option value="">Lädt...</option>
+                                    <option value="">Bitte warten...</option>
                                 </select>
                             </div>
                         </div>
@@ -106,13 +107,12 @@
                     <div class="form-group">
                         <label for="hashtags" class="form-label">Hashtags (Themenbereiche)</label>
                         <input type="text" id="hashtags" name="hashtags" class="form-control"
-                               value="{{ protokoll.hashtags or '' }}"
-                               placeholder="z.B. #Onkologie #Prostata #Bildgebung"
-                               list="hashtag-suggestions">
+                            value="{{ protokoll.hashtags or '' }}" placeholder="z.B. #Onkologie #Prostata #Bildgebung"
+                            list="hashtag-suggestions">
                         <datalist id="hashtag-suggestions">
                             {% for hashtag in predefined_hashtags %}
-                                <option value="{{ hashtag }}">
-                            {% endfor %}
+                            <option value="{{ hashtag }}">
+                                {% endfor %}
                         </datalist>
                         <small class="form-help">Trennen Sie mehrere Hashtags mit Leerzeichen.</small>
                     </div>
@@ -120,17 +120,19 @@
                     <div class="form-group">
                         <label for="inhalt" class="form-label">Prüfungsinhalt *</label>
                         <textarea id="inhalt" name="inhalt" class="form-control" rows="12" required
-                                  placeholder="Beschreiben Sie detailliert den Ablauf der Prüfung, gestellte Fragen, Fälle, etc.">{{ protokoll.inhalt }}</textarea>
+                            placeholder="Beschreiben Sie detailliert den Ablauf der Prüfung, gestellte Fragen, Fälle, etc.">{{ protokoll.inhalt }}</textarea>
                         <small class="form-help">
-                            <span id="characterCount">{{ protokoll.inhalt|length if protokoll.inhalt else 0 }}</span> Zeichen
-                            <span id="characterWarning" class="text-warning" style="display: none;"> - Zu kurz (mindestens 10 Zeichen)</span>
+                            <span id="characterCount">{{ protokoll.inhalt|length if protokoll.inhalt else 0 }}</span>
+                            Zeichen
+                            <span id="characterWarning" class="text-warning" style="display: none;"> - Zu kurz
+                                (mindestens 10 Zeichen)</span>
                         </small>
                     </div>
 
                     <div class="form-group">
                         <label for="kommentar" class="form-label">Persönlicher Kommentar</label>
                         <textarea id="kommentar" name="kommentar" class="form-control" rows="4"
-                                  placeholder="Persönliche Anmerkungen, Tipps oder Einschätzungen...">{{ protokoll.kommentar or '' }}</textarea>
+                            placeholder="Persönliche Anmerkungen, Tipps oder Einschätzungen...">{{ protokoll.kommentar or '' }}</textarea>
                     </div>
                 </div>
             </div>
@@ -146,7 +148,7 @@
                     <div class="form-group">
                         <label for="admin_notiz" class="form-label">Notiz an den Autor</label>
                         <textarea id="admin_notiz" name="admin_notiz" class="form-control" rows="4"
-                                  placeholder="Optional: Nachricht an den ursprünglichen Autor über die vorgenommenen Änderungen..."></textarea>
+                            placeholder="Optional: Nachricht an den ursprünglichen Autor über die vorgenommenen Änderungen..."></textarea>
                         <small class="form-help">Diese Nachricht wird dem Autor per E-Mail gesendet.</small>
                     </div>
 
@@ -173,7 +175,8 @@
                             <strong>Autor:</strong> {{ protokoll.user_name }}
                         </div>
                         <div class="original-item">
-                            <strong>Erstellt:</strong> {{ protokoll.created_at.strftime('%d.%m.%Y %H:%M') if protokoll.created_at else 'Unbekannt' }}
+                            <strong>Erstellt:</strong> {{ protokoll.created_at.strftime('%d.%m.%Y %H:%M') if
+                            protokoll.created_at else 'Unbekannt' }}
                         </div>
                         <div class="original-item">
                             <strong>Protokoll-ID:</strong> #{{ protokoll.id }}
@@ -198,13 +201,13 @@
                             💾 Änderungen speichern
                         </button>
 
-                        <a href="{{ url_for('admin_protokoll_details', protokoll_id=protokoll.id) }}"
-                           class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;">
+                        <a href="{{ url_for('admin.admin_protokoll_details', protokoll_id=protokoll.id) }}"
+                            class="btn btn-secondary" style="width: 100%; margin-top: 0.5rem;">
                             ❌ Abbrechen
                         </a>
 
-                        <button type="button" onclick="previewChanges()"
-                                class="btn btn-outline-info" style="width: 100%; margin-top: 0.5rem;">
+                        <button type="button" onclick="previewChanges()" class="btn btn-outline-info"
+                            style="width: 100%; margin-top: 0.5rem;">
                             👁️ Vorschau
                         </button>
                     </div>
@@ -241,300 +244,302 @@
 </div>
 
 <style>
-/* Admin Edit Styles */
-.admin-info {
-    background: rgba(96, 106, 172, 0.05);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-top: 1rem;
-}
-
-.admin-info h4 {
-    color: var(--primary-purple, #606aac);
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-}
-
-.admin-info ul {
-    margin: 0;
-    padding-left: 1.2rem;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-.admin-info li {
-    margin-bottom: 0.25rem;
-    color: var(--text-dark, #333);
-}
-
-.original-data {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.original-item {
-    font-size: 0.9rem;
-    padding: 0.5rem;
-    background: rgba(196, 207, 219, 0.1);
-    border-radius: 6px;
-}
-
-.original-item strong {
-    color: var(--primary-purple, #606aac);
-}
-
-.save-actions {
-    display: flex;
-    flex-direction: column;
-}
-
-.character-counter {
-    text-align: right;
-    font-size: 0.8rem;
-    color: var(--text-light, #666);
-    margin-top: 0.25rem;
-}
-
-/* Form Enhancements */
-#inhalt {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-}
-
-.form-group textarea:focus,
-.form-group input:focus,
-.form-group select:focus {
-    box-shadow: 0 0 0 3px rgba(63, 163, 87, 0.1);
-    border-color: var(--primary-green, #3fa357);
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-/* Validation Styles */
-.is-invalid {
-    border-color: #dc3545;
-}
-
-.is-valid {
-    border-color: #28a745;
-}
-
-/* Loading State */
-.loading {
-    opacity: 0.6;
-    pointer-events: none;
-}
-
-/* Auto-save indicator */
-#autosave-status {
-    font-style: italic;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .col-8, .col-4 {
-        width: 100%;
+    /* Admin Edit Styles */
+    .admin-info {
+        background: rgba(96, 106, 172, 0.05);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
     }
 
-    .d-flex.gap-2 {
+    .admin-info h4 {
+        color: var(--primary-purple, #606aac);
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .admin-info ul {
+        margin: 0;
+        padding-left: 1.2rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .admin-info li {
+        margin-bottom: 0.25rem;
+        color: var(--text-dark, #333);
+    }
+
+    .original-data {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .original-item {
+        font-size: 0.9rem;
+        padding: 0.5rem;
+        background: rgba(196, 207, 219, 0.1);
+        border-radius: 6px;
+    }
+
+    .original-item strong {
+        color: var(--primary-purple, #606aac);
+    }
+
+    .save-actions {
+        display: flex;
         flex-direction: column;
     }
-}
+
+    .character-counter {
+        text-align: right;
+        font-size: 0.8rem;
+        color: var(--text-light, #666);
+        margin-top: 0.25rem;
+    }
+
+    /* Form Enhancements */
+    #inhalt {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+    }
+
+    .form-group textarea:focus,
+    .form-group input:focus,
+    .form-group select:focus {
+        box-shadow: 0 0 0 3px rgba(63, 163, 87, 0.1);
+        border-color: var(--primary-green, #3fa357);
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    /* Validation Styles */
+    .is-invalid {
+        border-color: #dc3545;
+    }
+
+    .is-valid {
+        border-color: #28a745;
+    }
+
+    /* Loading State */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Auto-save indicator */
+    #autosave-status {
+        font-style: italic;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+
+        .col-8,
+        .col-4 {
+            width: 100%;
+        }
+
+        .d-flex.gap-2 {
+            flex-direction: column;
+        }
+    }
 </style>
 
 <script>
-// Admin Protokoll Bearbeitung JavaScript
-const pruefer_data = {{ pruefer_nach_bundesland | tojsonfilter }};
-const current_pruefer = {
-    pruefer1: {{ protokoll.pruefer1_id | default('null') }},
-    pruefer2: {{ protokoll.pruefer2_id | default('null') }},
-    pruefer3: {{ protokoll.pruefer3_id | default('null') }}
-};
-
-// Validation state
-let validationErrors = {
-    pruefer: false,
-    inhalt: false
-};
-
-function loadPruefer() {
-    const bundesland = document.getElementById('bundesland').value;
-    const pruefer1 = document.getElementById('pruefer1');
-    const pruefer2 = document.getElementById('pruefer2');
-    const pruefer3 = document.getElementById('pruefer3');
-
-    // Reset Prüfer-Selects
-    [pruefer1, pruefer2, pruefer3].forEach(select => {
-        select.innerHTML = '<option value="">Lädt...</option>';
-        select.disabled = true;
-    });
-
-    if (bundesland && pruefer_data[bundesland]) {
-        const options = '<option value="">Bitte wählen...</option>' +
-            pruefer_data[bundesland].map(pruefer =>
-                `<option value="${pruefer.id}">${pruefer.name}</option>`
-            ).join('');
-
-        [pruefer1, pruefer2, pruefer3].forEach(select => {
-            select.innerHTML = options;
-            select.disabled = false;
-        });
-
-        // Aktuelle Auswahl wiederherstellen
-        if (current_pruefer.pruefer1) pruefer1.value = current_pruefer.pruefer1;
-        if (current_pruefer.pruefer2) pruefer2.value = current_pruefer.pruefer2;
-        if (current_pruefer.pruefer3) pruefer3.value = current_pruefer.pruefer3;
-    } else {
-        [pruefer1, pruefer2, pruefer3].forEach(select => {
-            select.innerHTML = '<option value="">Erst Bundesland wählen</option>';
-            select.disabled = true;
-        });
-    }
-
-    validatePruefer();
-}
-
-// Prüfer Validation
-function validatePruefer() {
-    const pruefer1 = document.getElementById('pruefer1').value;
-    const pruefer2 = document.getElementById('pruefer2').value;
-    const pruefer3 = document.getElementById('pruefer3').value;
-    const errorDiv = document.getElementById('pruefer-error');
-
-    const hasDuplicates = (pruefer1 && pruefer2 && pruefer1 === pruefer2) ||
-                         (pruefer1 && pruefer3 && pruefer1 === pruefer3) ||
-                         (pruefer2 && pruefer3 && pruefer2 === pruefer3);
-
-    if (hasDuplicates) {
-        errorDiv.style.display = 'block';
-        validationErrors.pruefer = true;
-        ['pruefer1', 'pruefer2', 'pruefer3'].forEach(id => {
-            document.getElementById(id).classList.add('is-invalid');
-        });
-    } else {
-        errorDiv.style.display = 'none';
-        validationErrors.pruefer = false;
-        ['pruefer1', 'pruefer2', 'pruefer3'].forEach(id => {
-            const element = document.getElementById(id);
-            element.classList.remove('is-invalid');
-            if (element.value) element.classList.add('is-valid');
-        });
-    }
-
-    updateSaveButton();
-}
-
-// Character Counter and Content Validation
-function updateCharacterCount() {
-    const inhalt = document.getElementById('inhalt');
-    const count = inhalt.value.length;
-    const counter = document.getElementById('characterCount');
-    const warning = document.getElementById('characterWarning');
-
-    counter.textContent = count;
-
-    if (count < 10) {
-        counter.style.color = '#dc3545';
-        warning.style.display = 'inline';
-        inhalt.classList.add('is-invalid');
-        validationErrors.inhalt = true;
-    } else if (count < 100) {
-        counter.style.color = '#ffc107';
-        warning.style.display = 'none';
-        inhalt.classList.remove('is-invalid');
-        inhalt.classList.add('is-valid');
-        validationErrors.inhalt = false;
-    } else {
-        counter.style.color = '#28a745';
-        warning.style.display = 'none';
-        inhalt.classList.remove('is-invalid');
-        inhalt.classList.add('is-valid');
-        validationErrors.inhalt = false;
-    }
-
-    updateSaveButton();
-}
-
-function updateSaveButton() {
-    const saveButton = document.getElementById('saveButton');
-    const hasErrors = Object.values(validationErrors).some(error => error);
-
-    saveButton.disabled = hasErrors;
-    if (hasErrors) {
-        saveButton.classList.add('btn-secondary');
-        saveButton.classList.remove('btn-primary');
-    } else {
-        saveButton.classList.remove('btn-secondary');
-        saveButton.classList.add('btn-primary');
-    }
-}
-
-// Form Validation
-document.getElementById('adminEditForm').addEventListener('submit', function(e) {
-    const pruefer1 = document.getElementById('pruefer1').value;
-    const pruefer2 = document.getElementById('pruefer2').value;
-    const pruefer3 = document.getElementById('pruefer3').value;
-    const inhalt = document.getElementById('inhalt').value.trim();
-
-    // Final validation check
-    if (pruefer1 === pruefer2 || pruefer1 === pruefer3 || pruefer2 === pruefer3) {
-        e.preventDefault();
-        alert('Alle drei Prüfer müssen unterschiedlich sein.');
-        return false;
-    }
-
-    if (inhalt.length < 10) {
-        e.preventDefault();
-        alert('Der Prüfungsinhalt muss mindestens 10 Zeichen lang sein.');
-        document.getElementById('inhalt').focus();
-        return false;
-    }
-
-    // Bestätigung für Admin-Bearbeitung
-    const adminNotiz = document.getElementById('admin_notiz').value.trim();
-    let confirmMessage = 'Protokoll als Administrator bearbeiten?';
-
-    if (adminNotiz) {
-        confirmMessage += '\n\nDer Autor wird per E-Mail über die Änderungen benachrichtigt.';
-    } else {
-        confirmMessage += '\n\nHinweis: Es wurde keine Notiz an den Autor hinzugefügt.';
-    }
-
-    if (!confirm(confirmMessage)) {
-        e.preventDefault();
-        return false;
-    }
-
-    // Show loading state
-    const submitButton = e.target.querySelector('button[type="submit"]');
-    submitButton.disabled = true;
-    submitButton.innerHTML = '💾 Speichere...';
-
-    return true;
-});
-
-function previewChanges() {
-    const modal = new bootstrap.Modal(document.getElementById('previewModal'));
-    const content = document.getElementById('previewContent');
-
-    // Collect form data
-    const formData = {
-        datum: document.getElementById('datum').value,
-        bundesland: document.getElementById('bundesland').value,
-        pruefer1: document.getElementById('pruefer1').selectedOptions[0]?.text || '',
-        pruefer2: document.getElementById('pruefer2').selectedOptions[0]?.text || '',
-        pruefer3: document.getElementById('pruefer3').selectedOptions[0]?.text || '',
-        hashtags: document.getElementById('hashtags').value,
-        inhalt: document.getElementById('inhalt').value,
-        kommentar: document.getElementById('kommentar').value,
-        admin_notiz: document.getElementById('admin_notiz').value
+    // Admin Protokoll Bearbeitung JavaScript
+    const pruefer_data = {{ pruefer_nach_bundesland | tojson }};
+    const current_pruefer = {
+        pruefer1: {{ protokoll.pruefer1_id | tojson }},
+            pruefer2: {{ protokoll.pruefer2_id | tojson }},
+            pruefer3: {{ protokoll.pruefer3_id | tojson }}
     };
 
-    // Generate preview HTML
-    content.innerHTML = `
+    // Validation state
+    let validationErrors = {
+        pruefer: false,
+        inhalt: false
+    };
+
+    function loadPruefer() {
+        const bundesland = document.getElementById('bundesland').value;
+        const pruefer1 = document.getElementById('pruefer1');
+        const pruefer2 = document.getElementById('pruefer2');
+        const pruefer3 = document.getElementById('pruefer3');
+
+        // Reset Prüfer-Selects
+        [pruefer1, pruefer2, pruefer3].forEach(select => {
+            select.innerHTML = '<option value="">Lädt...</option>';
+            select.disabled = true;
+        });
+
+        if (bundesland && pruefer_data[bundesland]) {
+            const options = '<option value="">Bitte wählen...</option>' +
+                pruefer_data[bundesland].map(pruefer =>
+                    `<option value="${pruefer.id}">${pruefer.name}</option>`
+                ).join('');
+
+            [pruefer1, pruefer2, pruefer3].forEach(select => {
+                select.innerHTML = options;
+                select.disabled = false;
+            });
+
+            // Aktuelle Auswahl wiederherstellen
+            if (current_pruefer.pruefer1) pruefer1.value = current_pruefer.pruefer1;
+            if (current_pruefer.pruefer2) pruefer2.value = current_pruefer.pruefer2;
+            if (current_pruefer.pruefer3) pruefer3.value = current_pruefer.pruefer3;
+        } else {
+            [pruefer1, pruefer2, pruefer3].forEach(select => {
+                select.innerHTML = '<option value="">Erst Bundesland wählen</option>';
+                select.disabled = true;
+            });
+        }
+
+        validatePruefer();
+    }
+
+    // Prüfer Validation
+    function validatePruefer() {
+        const pruefer1 = document.getElementById('pruefer1').value;
+        const pruefer2 = document.getElementById('pruefer2').value;
+        const pruefer3 = document.getElementById('pruefer3').value;
+        const errorDiv = document.getElementById('pruefer-error');
+
+        const hasDuplicates = (pruefer1 && pruefer2 && pruefer1 === pruefer2) ||
+            (pruefer1 && pruefer3 && pruefer1 === pruefer3) ||
+            (pruefer2 && pruefer3 && pruefer2 === pruefer3);
+
+        if (hasDuplicates) {
+            errorDiv.style.display = 'block';
+            validationErrors.pruefer = true;
+            ['pruefer1', 'pruefer2', 'pruefer3'].forEach(id => {
+                document.getElementById(id).classList.add('is-invalid');
+            });
+        } else {
+            errorDiv.style.display = 'none';
+            validationErrors.pruefer = false;
+            ['pruefer1', 'pruefer2', 'pruefer3'].forEach(id => {
+                const element = document.getElementById(id);
+                element.classList.remove('is-invalid');
+                if (element.value) element.classList.add('is-valid');
+            });
+        }
+
+        updateSaveButton();
+    }
+
+    // Character Counter and Content Validation
+    function updateCharacterCount() {
+        const inhalt = document.getElementById('inhalt');
+        const count = inhalt.value.length;
+        const counter = document.getElementById('characterCount');
+        const warning = document.getElementById('characterWarning');
+
+        counter.textContent = count;
+
+        if (count < 10) {
+            counter.style.color = '#dc3545';
+            warning.style.display = 'inline';
+            inhalt.classList.add('is-invalid');
+            validationErrors.inhalt = true;
+        } else if (count < 100) {
+            counter.style.color = '#ffc107';
+            warning.style.display = 'none';
+            inhalt.classList.remove('is-invalid');
+            inhalt.classList.add('is-valid');
+            validationErrors.inhalt = false;
+        } else {
+            counter.style.color = '#28a745';
+            warning.style.display = 'none';
+            inhalt.classList.remove('is-invalid');
+            inhalt.classList.add('is-valid');
+            validationErrors.inhalt = false;
+        }
+
+        updateSaveButton();
+    }
+
+    function updateSaveButton() {
+        const saveButton = document.getElementById('saveButton');
+        const hasErrors = Object.values(validationErrors).some(error => error);
+
+        saveButton.disabled = hasErrors;
+        if (hasErrors) {
+            saveButton.classList.add('btn-secondary');
+            saveButton.classList.remove('btn-primary');
+        } else {
+            saveButton.classList.remove('btn-secondary');
+            saveButton.classList.add('btn-primary');
+        }
+    }
+
+    // Form Validation
+    document.getElementById('adminEditForm').addEventListener('submit', function (e) {
+        const pruefer1 = document.getElementById('pruefer1').value;
+        const pruefer2 = document.getElementById('pruefer2').value;
+        const pruefer3 = document.getElementById('pruefer3').value;
+        const inhalt = document.getElementById('inhalt').value.trim();
+
+        // Final validation check
+        if (pruefer1 === pruefer2 || pruefer1 === pruefer3 || pruefer2 === pruefer3) {
+            e.preventDefault();
+            alert('Alle drei Prüfer müssen unterschiedlich sein.');
+            return false;
+        }
+
+        if (inhalt.length < 10) {
+            e.preventDefault();
+            alert('Der Prüfungsinhalt muss mindestens 10 Zeichen lang sein.');
+            document.getElementById('inhalt').focus();
+            return false;
+        }
+
+        // Bestätigung für Admin-Bearbeitung
+        const adminNotiz = document.getElementById('admin_notiz').value.trim();
+        let confirmMessage = 'Protokoll als Administrator bearbeiten?';
+
+        if (adminNotiz) {
+            confirmMessage += '\n\nDer Autor wird per E-Mail über die Änderungen benachrichtigt.';
+        } else {
+            confirmMessage += '\n\nHinweis: Es wurde keine Notiz an den Autor hinzugefügt.';
+        }
+
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
+        }
+
+        // Show loading state
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '💾 Speichere...';
+
+        return true;
+    });
+
+    function previewChanges() {
+        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+        const content = document.getElementById('previewContent');
+
+        // Collect form data
+        const formData = {
+            datum: document.getElementById('datum').value,
+            bundesland: document.getElementById('bundesland').value,
+            pruefer1: document.getElementById('pruefer1').selectedOptions[0]?.text || '',
+            pruefer2: document.getElementById('pruefer2').selectedOptions[0]?.text || '',
+            pruefer3: document.getElementById('pruefer3').selectedOptions[0]?.text || '',
+            hashtags: document.getElementById('hashtags').value,
+            inhalt: document.getElementById('inhalt').value,
+            kommentar: document.getElementById('kommentar').value,
+            admin_notiz: document.getElementById('admin_notiz').value
+        };
+
+        // Generate preview HTML
+        content.innerHTML = `
         <div class="preview-content">
             <h4>📅 Prüfungsdaten</h4>
             <p><strong>Datum:</strong> ${formData.datum || 'Nicht angegeben'}</p>
@@ -568,132 +573,132 @@ function previewChanges() {
         </div>
     `;
 
-    modal.show();
-}
-
-// Auto-save functionality
-let autosaveTimer;
-let lastSaveData = {};
-
-function setupAutosave() {
-    const fields = ['datum', 'bundesland', 'pruefer1', 'pruefer2', 'pruefer3', 'hashtags', 'inhalt', 'kommentar', 'admin_notiz'];
-
-    fields.forEach(fieldId => {
-        const field = document.getElementById(fieldId);
-        if (field) {
-            field.addEventListener('input', function() {
-                clearTimeout(autosaveTimer);
-                autosaveTimer = setTimeout(() => {
-                    performAutosave();
-                }, 3000); // Auto-save after 3 seconds of inactivity
-            });
-        }
-    });
-}
-
-function performAutosave() {
-    // Collect current form data
-    const currentData = {
-        datum: document.getElementById('datum').value,
-        bundesland: document.getElementById('bundesland').value,
-        pruefer1: document.getElementById('pruefer1').value,
-        pruefer2: document.getElementById('pruefer2').value,
-        pruefer3: document.getElementById('pruefer3').value,
-        hashtags: document.getElementById('hashtags').value,
-        inhalt: document.getElementById('inhalt').value,
-        kommentar: document.getElementById('kommentar').value,
-        admin_notiz: document.getElementById('admin_notiz').value
-    };
-
-    // Check if data has changed
-    if (JSON.stringify(currentData) === JSON.stringify(lastSaveData)) {
-        return;
+        modal.show();
     }
 
-    // Store in localStorage as draft
-    localStorage.setItem('protokoll_draft_' + {{ protokoll.id }}, JSON.stringify(currentData));
-    lastSaveData = { ...currentData };
+    // Auto-save functionality
+    let autosaveTimer;
+    let lastSaveData = {};
 
-    // Show auto-save indicator
-    const statusDiv = document.getElementById('autosave-status');
-    const timeSpan = document.getElementById('autosave-time');
+    function setupAutosave() {
+        const fields = ['datum', 'bundesland', 'pruefer1', 'pruefer2', 'pruefer3', 'hashtags', 'inhalt', 'kommentar', 'admin_notiz'];
 
-    statusDiv.style.display = 'block';
-    timeSpan.textContent = ' - ' + new Date().toLocaleTimeString();
-
-    // Hide after 3 seconds
-    setTimeout(() => {
-        statusDiv.style.display = 'none';
-    }, 3000);
-}
-
-// Hashtag enhancement
-function enhanceHashtagInput() {
-    const hashtagInput = document.getElementById('hashtags');
-
-    hashtagInput.addEventListener('input', function(e) {
-        let value = e.target.value;
-
-        // Auto-add # to words that don't start with #
-        value = value.replace(/(?:^|\s)([^#\s]+)/g, ' #$1');
-        value = value.trim();
-
-        if (value !== e.target.value) {
-            const cursorPos = e.target.selectionStart + (value.length - e.target.value.length);
-            e.target.value = value;
-            e.target.setSelectionRange(cursorPos, cursorPos);
-        }
-    });
-}
-
-// Event Listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Load Prüfer for current Bundesland
-    loadPruefer();
-
-    // Setup auto-save
-    setupAutosave();
-
-    // Set initial character count
-    updateCharacterCount();
-
-    // Enhance hashtag input
-    enhanceHashtagInput();
-
-    // Add event listeners for validation
-    document.getElementById('inhalt').addEventListener('input', updateCharacterCount);
-
-    ['pruefer1', 'pruefer2', 'pruefer3'].forEach(id => {
-        document.getElementById(id).addEventListener('change', validatePruefer);
-    });
-
-    // Check for draft data
-    const draftKey = 'protokoll_draft_' + {{ protokoll.id }};
-    const draftData = localStorage.getItem(draftKey);
-
-    if (draftData && confirm('Ein Entwurf wurde gefunden. Möchten Sie ihn laden?')) {
-        const data = JSON.parse(draftData);
-
-        Object.keys(data).forEach(key => {
-            const field = document.getElementById(key);
-            if (field && data[key]) {
-                field.value = data[key];
-                if (key === 'bundesland') {
-                    loadPruefer(); // Reload examiners when state changes
-                }
+        fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', function () {
+                    clearTimeout(autosaveTimer);
+                    autosaveTimer = setTimeout(() => {
+                        performAutosave();
+                    }, 3000); // Auto-save after 3 seconds of inactivity
+                });
             }
         });
+    }
 
+    function performAutosave() {
+        // Collect current form data
+        const currentData = {
+            datum: document.getElementById('datum').value,
+            bundesland: document.getElementById('bundesland').value,
+            pruefer1: document.getElementById('pruefer1').value,
+            pruefer2: document.getElementById('pruefer2').value,
+            pruefer3: document.getElementById('pruefer3').value,
+            hashtags: document.getElementById('hashtags').value,
+            inhalt: document.getElementById('inhalt').value,
+            kommentar: document.getElementById('kommentar').value,
+            admin_notiz: document.getElementById('admin_notiz').value
+        };
+
+        // Check if data has changed
+        if (JSON.stringify(currentData) === JSON.stringify(lastSaveData)) {
+            return;
+        }
+
+        // Store in localStorage as draft
+        localStorage.setItem("protokoll_draft_{{ protokoll.id }}", JSON.stringify(currentData));
+        lastSaveData = { ...currentData };
+
+        // Show auto-save indicator
+        const statusDiv = document.getElementById('autosave-status');
+        const timeSpan = document.getElementById('autosave-time');
+
+        statusDiv.style.display = 'block';
+        timeSpan.textContent = ' - ' + new Date().toLocaleTimeString();
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // Hashtag enhancement
+    function enhanceHashtagInput() {
+        const hashtagInput = document.getElementById('hashtags');
+
+        hashtagInput.addEventListener('input', function (e) {
+            let value = e.target.value;
+
+            // Auto-add # to words that don't start with #
+            value = value.replace(/(?:^|\s)([^#\s]+)/g, ' #$1');
+            value = value.trim();
+
+            if (value !== e.target.value) {
+                const cursorPos = e.target.selectionStart + (value.length - e.target.value.length);
+                e.target.value = value;
+                e.target.setSelectionRange(cursorPos, cursorPos);
+            }
+        });
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function () {
+        // Load Prüfer for current Bundesland
+        loadPruefer();
+
+        // Setup auto-save
+        setupAutosave();
+
+        // Set initial character count
         updateCharacterCount();
-        validatePruefer();
-    }
-});
 
-// Clear draft on successful submission
-window.addEventListener('beforeunload', function() {
-    if (document.getElementById('adminEditForm').dataset.submitted === 'true') {
-        localStorage.removeItem('protokoll_draft_' + {{ protokoll.id }});
-    }
-});
+        // Enhance hashtag input
+        enhanceHashtagInput();
+
+        // Add event listeners for validation
+        document.getElementById('inhalt').addEventListener('input', updateCharacterCount);
+
+        ['pruefer1', 'pruefer2', 'pruefer3'].forEach(id => {
+            document.getElementById(id).addEventListener('change', validatePruefer);
+        });
+
+        // Check for draft data
+        const draftKey = "protokoll_draft_{{ protokoll.id }}";
+        const draftData = localStorage.getItem(draftKey);
+
+        if (draftData && confirm('Ein Entwurf wurde gefunden. Möchten Sie ihn laden?')) {
+            const data = JSON.parse(draftData);
+
+            Object.keys(data).forEach(key => {
+                const field = document.getElementById(key);
+                if (field && data[key]) {
+                    field.value = data[key];
+                    if (key === 'bundesland') {
+                        loadPruefer(); // Reload examiners when state changes
+                    }
+                }
+            });
+
+            updateCharacterCount();
+            validatePruefer();
+        }
+    });
+
+    // Clear draft on successful submission
+    window.addEventListener('beforeunload', function () {
+        if (document.getElementById('adminEditForm').dataset.submitted === 'true') {
+            localStorage.removeItem("protokoll_draft_{{ protokoll.id }}");
+        }
+    });
 </script>
 {% endblock %}

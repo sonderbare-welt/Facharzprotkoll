@@ -9,8 +9,8 @@ bp = Blueprint('admin', __name__)
 BUNDESLAENDER = [
     'Baden-Württemberg', 'Bayern', 'Berlin', 'Brandenburg', 'Bremen',
     'Hamburg', 'Hessen', 'Mecklenburg-Vorpommern', 'Niedersachsen',
-    'Nordrhein-Westfalen', 'Rheinland-Pfalz', 'Saarland', 'Sachsen',
-    'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen'
+    'Nordrhein', 'Rheinland-Pfalz', 'Saarland', 'Sachsen',
+    'Sachsen-Anhalt', 'Schleswig-Holstein', 'Thüringen', 'Westfalen-Lippe'
 ]
 
 # Vordefinierte Hashtags
@@ -411,34 +411,248 @@ def admin_pruefer_bearbeiten(pruefer_id):
 @admin_required
 def admin_protokolle():
     """Admin-Übersicht aller Protokolle"""
-    # ... implementation similar to original app.py but using db ...
-    # Simplified for brevity, assuming similar logic to protokolle() but with more filters
-    return render_template('admin/protokolle.html', protokolle=[], bundeslaender=BUNDESLAENDER) # Placeholder
+    db = get_db()
+
+    # Filter Parameter
+    user_filter = request.args.get('user', '')
+    bundesland_filter = request.args.get('bundesland', '')
+    pruefer_filter = request.args.get('pruefer', '')
+    hashtag_filter = request.args.get('hashtag', '')
+    datum_von = request.args.get('datum_von', '')
+    datum_bis = request.args.get('datum_bis', '')
+    sort_by = request.args.get('sort', 'created_at')
+    sort_order = request.args.get('order', 'desc')
+
+    # Query Bauen
+    query = '''
+        SELECT p.id, p.datum, p.bundesland, 
+               pr1.name as pruefer1, pr2.name as pruefer2, pr3.name as pruefer3,
+               p.hashtags, p.inhalt, p.kommentar, u.name as user_name, p.created_at, p.user_id
+        FROM protokolle p
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN pruefer pr1 ON p.pruefer1_id = pr1.id
+        LEFT JOIN pruefer pr2 ON p.pruefer2_id = pr2.id
+        LEFT JOIN pruefer pr3 ON p.pruefer3_id = pr3.id
+        WHERE 1=1
+    '''
+    params = []
+
+    if user_filter:
+        query += ' AND u.name LIKE ?'
+        params.append(f'%{user_filter}%')
+    if bundesland_filter:
+        query += ' AND p.bundesland = ?'
+        params.append(bundesland_filter)
+    if pruefer_filter:
+        query += ' AND (pr1.name LIKE ? OR pr2.name LIKE ? OR pr3.name LIKE ?)'
+        params.extend([f'%{pruefer_filter}%'] * 3)
+    if hashtag_filter:
+        query += ' AND p.hashtags LIKE ?'
+        params.append(f'%{hashtag_filter}%')
+    if datum_von:
+        query += ' AND p.datum >= ?'
+        params.append(datum_von)
+    if datum_bis:
+        query += ' AND p.datum <= ?'
+        params.append(datum_bis)
+
+    # Sortierung
+    valid_sorts = {
+        'created_at': 'p.created_at',
+        'datum': 'p.datum',
+        'bundesland': 'p.bundesland',
+        'user_name': 'u.name'
+    }
+    sort_col = valid_sorts.get(sort_by, 'p.created_at')
+    direction = 'ASC' if sort_order == 'asc' else 'DESC'
+    query += f' ORDER BY {sort_col} {direction}'
+
+    protokolle = db.execute(query, params).fetchall()
+
+    # Statistiken
+    gesamt_protokolle = db.execute('SELECT COUNT(*) FROM protokolle').fetchone()[0]
+    aktive_autoren = db.execute('SELECT COUNT(DISTINCT user_id) FROM protokolle').fetchone()[0]
+    bundeslaender_mit_protokollen = db.execute('SELECT COUNT(DISTINCT bundesland) FROM protokolle').fetchone()[0]
+    
+    # Listen für Filter
+    alle_benutzer_namen = [r[0] for r in db.execute('SELECT DISTINCT name FROM users ORDER BY name').fetchall()]
+    alle_pruefer_namen = [r[0] for r in db.execute('SELECT DISTINCT name FROM pruefer ORDER BY name').fetchall()]
+
+    return render_template('admin/protokolle.html',
+                           protokolle=protokolle,
+                           gesamt_protokolle=gesamt_protokolle,
+                           aktive_autoren=aktive_autoren,
+                           bundeslaender_mit_protokollen=bundeslaender_mit_protokollen,
+                           alle_benutzer_namen=alle_benutzer_namen,
+                           alle_pruefer_namen=alle_pruefer_namen,
+                           bundeslaender=BUNDESLAENDER,
+                           predefined_hashtags=PREDEFINED_HASHTAGS,
+                           user_filter=user_filter,
+                           bundesland_filter=bundesland_filter,
+                           pruefer_filter=pruefer_filter,
+                           hashtag_filter=hashtag_filter,
+                           datum_von=datum_von,
+                           datum_bis=datum_bis,
+                           sort_by=sort_by,
+                           sort_order=sort_order)
 
 @bp.route('/admin/protokoll/<int:protokoll_id>')
 @admin_required
 def admin_protokoll_details(protokoll_id):
     """Admin-Ansicht für Protokoll-Details"""
-    # ... implementation ...
-    return render_template('admin/protokoll_details.html') # Placeholder
+    db = get_db()
+    row = db.execute('''
+        SELECT p.*, u.name as user_name, u.email as user_email,
+               pr1.name as pr1_name, pr1.bundesland as pr1_land,
+               pr2.name as pr2_name, pr2.bundesland as pr2_land,
+               pr3.name as pr3_name, pr3.bundesland as pr3_land
+        FROM protokolle p
+        JOIN users u ON p.user_id = u.id
+        LEFT JOIN pruefer pr1 ON p.pruefer1_id = pr1.id
+        LEFT JOIN pruefer pr2 ON p.pruefer2_id = pr2.id
+        LEFT JOIN pruefer pr3 ON p.pruefer3_id = pr3.id
+        WHERE p.id = ?
+    ''', (protokoll_id,)).fetchone()
+
+    if not row:
+        flash('Protokoll nicht gefunden', 'error')
+        return redirect(url_for('admin.admin_protokolle'))
+
+    # Strukturieren für Template
+    protokoll = {
+        'id': row['id'],
+        'datum': row['datum'],
+        'bundesland': row['bundesland'],
+        'inhalt': row['inhalt'],
+        'kommentar': row['kommentar'],
+        'hashtags': row['hashtags'],
+        'created_at': row['created_at'],
+        'user': {'id': row['user_id'], 'name': row['user_name'], 'email': row['user_email']},
+        'pruefer1': {'name': row['pr1_name'], 'bundesland': row['pr1_land']},
+        'pruefer2': {'name': row['pr2_name'], 'bundesland': row['pr2_land']},
+        'pruefer3': {'name': row['pr3_name'], 'bundesland': row['pr3_land']},
+    }
+
+    return render_template('admin/protokoll_details.html', protokoll=protokoll)
 
 @bp.route('/admin/protokoll/<int:protokoll_id>/bearbeiten', methods=['GET', 'POST'])
 @admin_required
 def admin_protokoll_bearbeiten(protokoll_id):
     """Protokoll als Admin bearbeiten"""
-    # ... implementation ...
-    return render_template('admin/protokoll_bearbeiten.html') # Placeholder
+    db = get_db()
+    
+    if request.method == 'POST':
+        inhalt = request.form.get('inhalt')
+        kommentar = request.form.get('kommentar')
+        hashtags = request.form.get('hashtags')
+        datum = request.form.get('datum')
+        bundesland = request.form.get('bundesland')
+        pruefer1 = request.form.get('pruefer1')
+        pruefer2 = request.form.get('pruefer2')
+        pruefer3 = request.form.get('pruefer3')
+        admin_notiz = request.form.get('admin_notiz')
+        
+        db.execute('''
+            UPDATE protokolle 
+            SET inhalt = ?, kommentar = ?, hashtags = ?, datum = ?, bundesland = ?,
+                pruefer1_id = ?, pruefer2_id = ?, pruefer3_id = ?
+            WHERE id = ?
+        ''', (inhalt, kommentar, hashtags, datum, bundesland, pruefer1, pruefer2, pruefer3, protokoll_id))
+        db.commit()
+        
+        # Log action
+        db.execute('INSERT INTO logs (user_id, action, details) VALUES (?, ?, ?)',
+                   (session['user_id'], 'PROTOKOLL_BEARBEITET', f'Protokoll {protokoll_id} bearbeitet. Notiz: {admin_notiz if admin_notiz else "Keine"}'))
+        db.commit()
+
+        # Email an User senden, wenn Notiz vorhanden
+        if admin_notiz:
+            # User Email laden
+            user = db.execute('''
+                SELECT u.email, u.name 
+                FROM users u 
+                JOIN protokolle p ON p.user_id = u.id 
+                WHERE p.id = ?
+            ''', (protokoll_id,)).fetchone()
+            
+            if user:
+                subject = f"Änderung an Ihrem Gedächtnisprotokoll #{protokoll_id}"
+                body = f"""
+                <html>
+                <body>
+                    <h2>Hallo {user['name']},</h2>
+                    <p>Ein Administrator hat Ihr Gedächtnisprotokoll #{protokoll_id} bearbeitet.</p>
+                    <p><strong>Nachricht des Administrators:</strong></p>
+                    <blockquote style="background: #f9f9f9; border-left: 10px solid #ccc; margin: 1.5em 10px; padding: 0.5em 10px;">
+                        {admin_notiz}
+                    </blockquote>
+                    <p>Sie können das aktualisierte Protokoll in Ihrem Dashboard einsehen.</p>
+                </body>
+                </html>
+                """
+                send_email(user['email'], subject, body)
+                flash('Protokoll aktualisiert und Benutzer benachrichtigt', 'success')
+            else:
+                flash('Protokoll aktualisiert (Benutzer für Benachrichtigung nicht gefunden)', 'warning')
+        else:
+            flash('Protokoll aktualisiert', 'success')
+
+        return redirect(url_for('admin.admin_protokoll_details', protokoll_id=protokoll_id))
+
+    # GET
+    protokoll = db.execute('''
+        SELECT p.*, u.name as user_name 
+        FROM protokolle p 
+        JOIN users u ON p.user_id = u.id 
+        WHERE p.id = ?
+    ''', (protokoll_id,)).fetchone()
+    
+    # Prüfer nach Bundesland laden für das Select-Menü
+    alle_pruefer = db.execute('SELECT id, name, bundesland FROM pruefer ORDER BY bundesland, name').fetchall()
+    pruefer_nach_bundesland = {}
+    for pruefer in alle_pruefer:
+        if pruefer['bundesland'] not in pruefer_nach_bundesland:
+            pruefer_nach_bundesland[pruefer['bundesland']] = []
+        pruefer_nach_bundesland[pruefer['bundesland']].append({'id': pruefer['id'], 'name': pruefer['name']})
+    
+    return render_template('admin/protokoll_bearbeiten_alternative.html', 
+                           protokoll=protokoll,
+                           bundeslaender=BUNDESLAENDER,
+                           predefined_hashtags=PREDEFINED_HASHTAGS,
+                           pruefer_nach_bundesland=pruefer_nach_bundesland)
 
 @bp.route('/admin/protokoll/<int:protokoll_id>/loeschen', methods=['POST'])
 @admin_required
 def admin_protokoll_loeschen(protokoll_id):
     """Protokoll als Admin löschen"""
-    # ... implementation ...
+    grund = request.form.get('grund')
+    db = get_db()
+    
+    # Info für Log und Email holen vor dem Löschen
+    p = db.execute('SELECT user_id, datum FROM protokolle WHERE id = ?', (protokoll_id,)).fetchone()
+    if p:
+        # Email Logik hier einfügen (Platzhalter)
+        pass
+
+    db.execute('DELETE FROM protokolle WHERE id = ?', (protokoll_id,))
+    
+    # Log
+    db.execute('INSERT INTO logs (user_id, action, details) VALUES (?, ?, ?)',
+               (session['user_id'], 'PROTOKOLL_GELOESCHT', f'Protokoll {protokoll_id} gelöscht. Grund: {grund}'))
+    db.commit()
+    
+    flash('Protokoll gelöscht', 'success')
     return redirect(url_for('admin.admin_protokolle'))
 
 @bp.route('/admin/logs')
 @admin_required
 def admin_logs():
     """Admin-Aktivitätslogs anzeigen"""
-    # ... implementation ...
-    return render_template('admin/logs.html', logs=[]) # Placeholder
+    db = get_db()
+    logs = db.execute('''
+        SELECT l.*, u.name as user_name 
+        FROM logs l 
+        LEFT JOIN users u ON l.user_id = u.id 
+        ORDER BY l.timestamp DESC LIMIT 100
+    ''').fetchall()
+    return render_template('admin/logs.html', logs=logs)

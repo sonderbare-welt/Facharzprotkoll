@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, session # Trigger reloads import mail
+from flask import Flask, render_template, redirect, url_for, flash, session
 from config import Config
 from extensions import mail
 from db import init_app
@@ -28,6 +28,15 @@ def create_app(config_class=Config):
     from blueprints.admin import bp as admin_bp
     app.register_blueprint(admin_bp)
 
+    @app.template_filter('datetime')
+    def format_datetime(value):
+        if not value: return None
+        if isinstance(value, datetime): return value
+        try:
+            return datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        except (ValueError, TypeError):
+             return value
+
     return app
 
 app = create_app()
@@ -37,10 +46,9 @@ def erinnerungs_service():
     with app.app_context():
         while True:
             try:
-                conn = sqlite3.connect(app.config['DATABASE'])
-                c = conn.cursor()
-                # ... existing logic ...
-                conn.close()
+                # Placeholder for reminder service
+                # Logic: Check database for upcoming exams and send emails
+                pass 
             except Exception as e:
                 print(f"Erinnerungs-Service Fehler: {e}")
             time.sleep(3600)
